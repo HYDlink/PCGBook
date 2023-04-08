@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCG.CellularAutomata", "PCG.CellularAutomata\PCG.CellularAutomata.csproj", "{065425BB-4376-45D2-9199-08362CA401F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCG.GUI", "PCG.GUI\PCG.GUI.csproj", "{0D4FDD59-9EC7-49B9-8708-E9014B29239D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{065425BB-4376-45D2-9199-08362CA401F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{065425BB-4376-45D2-9199-08362CA401F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{065425BB-4376-45D2-9199-08362CA401F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{065425BB-4376-45D2-9199-08362CA401F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,47 @@
+﻿<Window x:Class="PCG.GUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PCG.GUI"
+        mc:Ignorable="d"
+        Title="洞窟细胞自动机qwq" SizeToContent="WidthAndHeight">
+    <Window.DataContext>
+        <local:CaveCAViewModel/>
+    </Window.DataContext>
+    <DockPanel>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Label>高度</Label>
+                <TextBox Width="32" Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>宽度</Label>
+                <TextBox Width="32" Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>随机种子</Label>
+                <TextBox Width="32" Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel>
+                <Button Name="InitBtn" Command="{Binding InitializeCommand}">初始化</Button>
+                <Button Name="ExecuteBtn" Command="{Binding AutomataCommand}">执行自动机</Button>
+                <Button Name="DrawEdgeBtn" Command="{Binding DrawEdgeCommand}">画出边缘</Button>
+            </StackPanel>
+        </StackPanel>
+        
+        <ItemsControl ItemsSource="{Binding Map}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="{Binding Height}" Columns="{Binding Width}" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Rectangle Fill="{Binding }" Stroke="Black" StrokeThickness="1"
+                               Width="16" Height="16"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </DockPanel>
+</Window>
