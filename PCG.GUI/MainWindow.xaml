@@ -20,6 +20,10 @@
                 <TextBox Width="32" Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>洞窟比率</Label>
+                <TextBox Width="32" Text="{Binding CavePercent, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <Label>随机种子</Label>
                 <TextBox Width="32" Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCG.CellularAutomata", "PCG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCG.GUI", "PCG.GUI\PCG.GUI.csproj", "{0D4FDD59-9EC7-49B9-8708-E9014B29239D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCG.Noise", "PCG.Noise\PCG.Noise.csproj", "{CF2194EF-2562-4C49-8BF3-30B822EF2D2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D4FDD59-9EC7-49B9-8708-E9014B29239D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF2194EF-2562-4C49-8BF3-30B822EF2D2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF2194EF-2562-4C49-8BF3-30B822EF2D2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF2194EF-2562-4C49-8BF3-30B822EF2D2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF2194EF-2562-4C49-8BF3-30B822EF2D2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -78,6 +78,26 @@ public class CaveCA
         }
     }
 
+    public IEnumerable<CaveCell> GetAllNeighborsInCross(int x, int y)
+    {
+        if (x > 0)
+        {
+            var nx = x - 1;
+            yield return Map[y, nx];
+        }
+
+        if (y > 0)
+            yield return Map[y - 1, x];
+        if (y < Height - 1)
+            yield return Map[y + 1, x];
+
+        if (x < Width - 1)
+        {
+            var nx = x + 1;
+            yield return Map[y, nx];
+        }
+    }
+
     public int GetNeighborCountWhere(int x, int y, Func<CaveCell, bool> predicate)
         => GetAllNeighbors(x, y).Count(predicate);
 
@@ -105,7 +125,7 @@ public class CaveCA
         for (int x = 0; x < Width; x++)
         {
             var be_wall = Map[y, x] == CaveCell.Stone
-                          && GetNeighborCountWhere(x, y, c => c == CaveCell.Empty) >= 2;
+                          && GetAllNeighborsInCross(x, y).Any(c => c == CaveCell.Empty);
             // var stone_count = GetNeighborCountWhere(x, y, c => c == CaveCell.Stone);
             newMap[y, x] = be_wall ? CaveCell.Wall : Map[y, x];
         }
