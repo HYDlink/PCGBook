@@ -24,6 +24,10 @@
                 <TextBox Width="32" Text="{Binding CavePercent, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>石头融化邻居比例</Label>
+                <TextBox Width="32" Text="{Binding ToWallRatio, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <Label>随机种子</Label>
                 <TextBox Width="32" Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
@@ -32,6 +36,14 @@
                 <Button Name="ExecuteBtn" Command="{Binding AutomataCommand}">执行自动机</Button>
                 <Button Name="DrawEdgeBtn" Command="{Binding DrawEdgeCommand}">画出边缘</Button>
             </StackPanel>
+            
+            <Border Height="20"/>
+            
+            <StackPanel Orientation="Horizontal">
+                <Label>细胞自动机执行次数</Label>
+                <TextBox Width="32" Text="{Binding ExecutionTimes, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <Button Command="{Binding ExecuteCommand}">直接执行</Button>
         </StackPanel>
         
         <ItemsControl ItemsSource="{Binding Map}">
@@ -43,7 +55,7 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Rectangle Fill="{Binding }" Stroke="Black" StrokeThickness="1"
-                               Width="16" Height="16"/>
+                               Width="8" Height="8"/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

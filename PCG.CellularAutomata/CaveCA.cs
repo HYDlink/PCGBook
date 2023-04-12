@@ -7,6 +7,7 @@ public enum CaveCell
 
 public class CaveCA
 {
+    public double ToWallRatio { get; set; } = 0.4;
     public int Width { get; set; }
     public int Height { get; set; }
     public double CavePercent { get; set; }
@@ -109,7 +110,7 @@ public class CaveCA
         for (int x = 0; x < Width; x++)
         {
             var all_neighbors = GetAllNeighbors(x, y);
-            var be_stone = (all_neighbors.Count(c => c == CaveCell.Stone) / (double)all_neighbors.Count()) > 0.4;
+            var be_stone = (all_neighbors.Count(c => c == CaveCell.Stone) / (double)all_neighbors.Count()) > ToWallRatio;
             // var stone_count = GetNeighborCountWhere(x, y, c => c == CaveCell.Stone);
             newMap[y, x] = be_stone ? CaveCell.Stone : CaveCell.Empty;
         }

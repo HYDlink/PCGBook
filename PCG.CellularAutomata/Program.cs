@@ -1,11 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 Console.WriteLine("Hello, World!");
 var cave_ca = new CaveCA(64, 64, 0.5f, 5);
 cave_ca.Execute();
