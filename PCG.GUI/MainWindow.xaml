@@ -5,10 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PCG.GUI"
         mc:Ignorable="d"
-        Title="洞窟细胞自动机qwq" SizeToContent="WidthAndHeight">
-    <Window.DataContext>
-        <local:CaveCAViewModel/>
-    </Window.DataContext>
+        Title="洞窟细胞自动机qwq" SizeToContent="WidthAndHeight"
+        d:DataContext="{d:DesignInstance local:CaveCAViewModel}">
     <DockPanel>
         <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Horizontal">
@@ -35,6 +33,7 @@
                 <Button Name="InitBtn" Command="{Binding InitializeCommand}">初始化</Button>
                 <Button Name="ExecuteBtn" Command="{Binding AutomataCommand}">执行自动机</Button>
                 <Button Name="DrawEdgeBtn" Command="{Binding DrawEdgeCommand}">画出边缘</Button>
+                <Button Name="FillRoomBtn" Command="{Binding FillRoomCommand}">为区域着色</Button>
             </StackPanel>
             
             <Border Height="20"/>
@@ -46,18 +45,6 @@
             <Button Command="{Binding ExecuteCommand}">直接执行</Button>
         </StackPanel>
         
-        <ItemsControl ItemsSource="{Binding Map}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Rows="{Binding Height}" Columns="{Binding Width}" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Rectangle Fill="{Binding }" Stroke="Black" StrokeThickness="1"
-                               Width="8" Height="8"/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <UniformGrid Name="CavePanel" Rows="{Binding Height}" Columns="{Binding Width}" />
     </DockPanel>
 </Window>
