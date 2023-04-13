@@ -8,6 +8,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using static System.Threading.Thread;
 
+#pragma warning disable MVVMTK0034
+
 namespace PCG.GUI;
 
 public partial class CaveCAViewModel : ObservableObject
@@ -23,7 +25,7 @@ public partial class CaveCAViewModel : ObservableObject
 
     [ObservableProperty] public int executionTimes = 16;
 
-    [ObservableProperty] public CaveCA caveCa;
+    [ObservableProperty] public CaveCA caveCa = new (0, 0, 0);
 
     [RelayCommand]
     public void Initialize()
@@ -34,9 +36,11 @@ public partial class CaveCAViewModel : ObservableObject
 
     private void InitializeCave()
     {
-        caveCa = new CaveCA(width, height, cavePercent);
-        caveCa.ToWallRatio = toWallRatio;
-        caveCa.Seed = seed <= 0 ? new Random().Next() : seed;
+        caveCa = new CaveCA(width, height, cavePercent)
+        {
+            ToWallRatio = toWallRatio,
+            Seed = seed <= 0 ? new Random().Next() : seed
+        };
         caveCa.Initialize();
 
         ConstructMap();
@@ -61,7 +65,7 @@ public partial class CaveCAViewModel : ObservableObject
         for (int x = 0; x < width; x++)
         {
             var index = y * width + x;
-            var rect = View.CavePanel.Children[index] as Rectangle;
+            var rect = (Rectangle)View.CavePanel.Children[index];
             rect.Fill = ToBrush(x, y);
         }
     }
@@ -100,8 +104,6 @@ public partial class CaveCAViewModel : ObservableObject
     [RelayCommand]
     public void Automata()
     {
-        if (caveCa is null)
-            return;
         caveCa.Automation();
         UpdateMap();
     }
@@ -145,7 +147,7 @@ public partial class CaveCAViewModel : ObservableObject
         caveCa.FillRoom();
         UpdateShow();
 
-        foreach (var connect_room in caveCa.ConnectRooms())
+        foreach (var _ in caveCa.ConnectRooms())
         {
             UpdateShow();
         }
