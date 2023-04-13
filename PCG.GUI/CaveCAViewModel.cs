@@ -38,7 +38,7 @@ public partial class CaveCAViewModel : ObservableObject
         caveCa.ToWallRatio = toWallRatio;
         caveCa.Seed = seed <= 0 ? new Random().Next() : seed;
         caveCa.Initialize();
-        
+
         ConstructMap();
     }
 
@@ -75,11 +75,11 @@ public partial class CaveCAViewModel : ObservableObject
             _ => throw new ArgumentOutOfRangeException(nameof(c), c, null)
         };
 
-    private SolidColorBrush ToBrush(int x, int y) 
+    private SolidColorBrush ToBrush(int x, int y)
         => caveCa.Map[y, x] switch
         {
-            CaveCell.Empty => 
-                caveCa.RoomMap[y,x] switch
+            CaveCell.Empty =>
+                caveCa.RoomMap[y, x] switch
                 {
                     0 => Brushes.DarkGray,
                     1 => Brushes.PaleVioletRed,
@@ -93,8 +93,10 @@ public partial class CaveCAViewModel : ObservableObject
                 },
             CaveCell.Stone => Brushes.Black,
             CaveCell.Wall => Brushes.Brown,
+            CaveCell.ToDig => Brushes.Fuchsia,
             _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
         };
+
     [RelayCommand]
     public void Automata()
     {
@@ -119,19 +121,19 @@ public partial class CaveCAViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void ConnectRooms()
+    {
+        foreach (var _ in caveCa.ConnectRooms()) UpdateShow();
+        return;
+        
+        caveCa.ConnectRooms();
+        UpdateMap();
+    }
+
+    [RelayCommand]
     public void Execute()
     {
         InitializeCave();
-
-        void UpdateShow()
-        {
-            UpdateMap();
-            // return;
-            Sleep(100);
-            Application.Current.Dispatcher.Invoke(
-                () => { },
-                System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        }
 
         UpdateShow();
         for (int i = 0; i < ExecutionTimes; i++)
@@ -139,9 +141,26 @@ public partial class CaveCAViewModel : ObservableObject
             caveCa.Automation();
             UpdateShow();
         }
+
         caveCa.FillRoom();
         UpdateShow();
+
+        foreach (var connect_room in caveCa.ConnectRooms())
+        {
+            UpdateShow();
+        }
+
         caveCa.DrawEdge();
         UpdateMap();
+    }
+
+    private void UpdateShow()
+    {
+        UpdateMap();
+        // return;
+        Sleep(100);
+        Application.Current.Dispatcher.Invoke(
+            () => { },
+            System.Windows.Threading.DispatcherPriority.ApplicationIdle);
     }
 }
