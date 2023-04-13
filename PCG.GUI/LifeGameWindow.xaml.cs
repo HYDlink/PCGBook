@@ -18,7 +18,7 @@ public partial class LifeGameWindow : Window
 
     private readonly int _rowCount;
     private readonly int _columnCount;
-    private readonly int[,] _cells;
+    private int[,] _cells;
     private readonly List<int[,]> _history;
 
     private readonly SolidColorBrush _aliveColorBrush = Brushes.Black;
@@ -28,6 +28,7 @@ public partial class LifeGameWindow : Window
 
     public float Chance { get; set; } = 100;
     public float Decay { get; set; } = 0.5f;
+    private int colorId = 2;
     
     public LifeGameWindow() : this(64, 64)
     {
@@ -120,7 +121,6 @@ public partial class LifeGameWindow : Window
         Array.Copy(newCells, _cells, newCells.Length);
     }
 
-    private int colorId = 2;
 
     private void LazyFloodFill(int x, int y)
     {
@@ -214,7 +214,8 @@ public partial class LifeGameWindow : Window
     private void ResetButton_Click(object sender, RoutedEventArgs e)
     {
         _history.Clear();
-        _cells.Initialize();
+        _cells = new int[_rowCount, _columnCount];
+        colorId = LIVE + 1;
         UpdateGrid();
     }
 
