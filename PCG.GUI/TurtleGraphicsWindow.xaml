@@ -1,0 +1,38 @@
+<Window x:Class="PCG.GUI.TurtleGraphicsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:PCG.GUI"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance local:TurtleGraphicsViewModel}"
+        KeyDown="TurtleCanvas_OnKeyDown"
+        Title="TurtleGraphicsWindow" Height="800" Width="1200">
+    <DockPanel>
+        <StackPanel MinWidth="100" DockPanel.Dock="Left" Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Label>输入语法:</Label>
+                <TextBox Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>递归次数:</Label>
+                <TextBox Text="{Binding RecursiveTime, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <Button Command="{Binding RunByInputCommand}">执行输入</Button>
+            <Button Command="{Binding ResetCommand}">重置</Button>
+            <Separator HorizontalAlignment="Stretch" Height="12" />
+            <TextBlock Text="{Binding Recorded}" />
+            <Separator HorizontalAlignment="Stretch" Height="12" />
+            <StackPanel Orientation="Horizontal">
+                <Label>线条长度:</Label>
+                <TextBox Text="{Binding Distance, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>画线间隔 MS:</Label>
+                <TextBox Text="{Binding WaitMS, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </StackPanel>
+        
+        <Canvas Name="TurtleCanvas" Background="Bisque" />
+
+    </DockPanel>
+</Window>
