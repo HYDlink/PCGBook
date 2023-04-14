@@ -204,12 +204,10 @@ public partial class LifeGameWindow : Window
         {
             NextGeneration();
             UpdateGrid();
-            System.Threading.Thread.Sleep(100);
-            Application.Current.Dispatcher.Invoke(
-                () => { },
-                System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            App.Wait(100);
         }
     }
+
 
     private void ResetButton_Click(object sender, RoutedEventArgs e)
     {

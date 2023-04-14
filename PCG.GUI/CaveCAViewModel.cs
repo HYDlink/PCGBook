@@ -160,9 +160,6 @@ public partial class CaveCAViewModel : ObservableObject
     {
         UpdateMap();
         // return;
-        Sleep(100);
-        Application.Current.Dispatcher.Invoke(
-            () => { },
-            System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        App.Wait(100);
     }
 }

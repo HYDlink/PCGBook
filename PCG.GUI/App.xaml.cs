@@ -13,5 +13,12 @@ namespace PCG.GUI
     /// </summary>
     public partial class App : Application
     {
+        public static void Wait(int ms)
+        {
+            System.Threading.Thread.Sleep(ms);
+            Application.Current.Dispatcher.Invoke(
+                () => { },
+                System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        }
     }
 }
