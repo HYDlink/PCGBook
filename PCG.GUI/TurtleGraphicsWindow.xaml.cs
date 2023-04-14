@@ -52,6 +52,7 @@ public partial class TurtleGraphicsWindow : Window
         HintLine.Y2 = end.Y;
     }
 
+    // TODO Batch drawing instead of Shape Controls
     public void DrawLine(Point start, Point end)
     {
         var line = new Line()
@@ -68,20 +69,25 @@ public partial class TurtleGraphicsWindow : Window
         switch (e.Key)
         {
             case FORWARD_KEY:
-                ViewModel.Forward();
-                break;
-            case TURN_LEFT_KEY:
-                ViewModel.TurnLeft();
+                ViewModel.RecordRun('F');
                 break;
             case TURN_RIGHT_KEY:
-                ViewModel.TurnRight();
+                ViewModel.RecordRun('+');
+                break;
+            case TURN_LEFT_KEY:
+                ViewModel.RecordRun('-');
                 break;
             case SAVE_POS_KEY:
-                ViewModel.SavePosition();
+                ViewModel.RecordRun('[');
                 break;
             case LOAD_POS_KEY:
-                ViewModel.LoadPosition();
+                ViewModel.RecordRun(']');
                 break;
         }
+    }
+
+    private void TurtleCanvas_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        TurtleCanvas.Focus();
     }
 }

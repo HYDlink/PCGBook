@@ -5,7 +5,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:PCG.GUI"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance local:TurtleGraphicsViewModel}"
-        KeyDown="TurtleCanvas_OnKeyDown"
         Title="TurtleGraphicsWindow" Height="800" Width="1200">
     <DockPanel>
         <StackPanel MinWidth="100" DockPanel.Dock="Left" Orientation="Vertical">
@@ -18,10 +17,21 @@
                 <TextBox Text="{Binding RecursiveTime, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <Button Command="{Binding RunByInputCommand}">执行输入</Button>
-            <Button Command="{Binding ResetCommand}">重置</Button>
+            <Button Command="{Binding ResetAllCommand}">重置</Button>
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding UndoCommand}">撤销</Button>
+                <Button Command="{Binding RedoCommand}">重做</Button>
+            </StackPanel>
+            
             <Separator HorizontalAlignment="Stretch" Height="12" />
-            <TextBlock Text="{Binding Recorded}" />
+            
+            <Label>录制状态</Label>
+            <TextBlock Text="{Binding Recorded}" TextWrapping="Wrap" />
+            <Button Command="{Binding CopyRecordedCommand}">复制录制</Button>
+            <Button Command="{Binding RunByRecordedCommand}">执行录制</Button>
+            
             <Separator HorizontalAlignment="Stretch" Height="12" />
+            
             <StackPanel Orientation="Horizontal">
                 <Label>线条长度:</Label>
                 <TextBox Text="{Binding Distance, UpdateSourceTrigger=PropertyChanged}" />
@@ -32,11 +42,13 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label>画线间隔 MS:</Label>
-                <TextBox Text="{Binding WaitMS, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Text="{Binding WaitMs, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
         </StackPanel>
         
-        <Canvas Name="TurtleCanvas" Background="Bisque" />
+        <Canvas Name="TurtleCanvas" Background="Bisque" Focusable="True"
+                MouseLeftButtonDown="TurtleCanvas_OnMouseLeftButtonDown"
+                KeyDown="TurtleCanvas_OnKeyDown" />
 
     </DockPanel>
 </Window>
