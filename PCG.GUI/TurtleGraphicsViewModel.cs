@@ -58,8 +58,9 @@ public partial class TurtleGraphicsViewModel : ObservableObject
     [RelayCommand]
     public void Reset()
     {
-        ResetPos();
-        isRunning = false;
+        IsRunning = false;
+        CurrentPoint = new Point(View.Width / 2, View.Height / 2);
+        CurrentDirection = new Vector(0, -1);
         View.Reset();
     }
 
@@ -89,11 +90,6 @@ public partial class TurtleGraphicsViewModel : ObservableObject
             // yield return null;
         }
         IsRunning = false;
-    }
-
-    public void ResetPos()
-    {
-        CurrentPoint = new Point(View.Width / 2, View.Height / 2);
     }
 
     public void SavePosition()

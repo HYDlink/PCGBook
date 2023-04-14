@@ -27,6 +27,10 @@
                 <TextBox Text="{Binding Distance, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>转向角度:</Label>
+                <TextBox Text="{Binding TurnAngle, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <Label>画线间隔 MS:</Label>
                 <TextBox Text="{Binding WaitMS, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
