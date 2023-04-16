@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,9 +13,9 @@ namespace PCG.GUI;
 public partial class TurtleGraphicsViewModel : ObservableObject
 {
     public static readonly Vector DefaultDirection = new(0, -1);
-    
+
     public TurtleGraphicsWindow View { get; }
-    
+
     [ObservableProperty] public string input = "";
     [ObservableProperty] public string recorded = "";
     [ObservableProperty] public int recursiveTime = 1;
@@ -26,13 +27,16 @@ public partial class TurtleGraphicsViewModel : ObservableObject
     /// <summary>
     /// 用于停止 <see cref="RunByInput"/>
     /// </summary>
-    [ObservableProperty] public bool isRunning = false;
+    public bool isRunning = false;
 
     [ObservableProperty] public float distance = 50;
-    
+
     public Point CurrentPoint { get; set; } = new(40, 70);
     public Vector CurrentDirection { get; set; } = DefaultDirection;
-    public Stack<Point> SavedPositions { get; set; } = new();
+
+    public record struct PosAndDir(Point Pos, Vector Dir);
+
+    public Stack<PosAndDir> SavedPositions { get; set; } = new();
 
     public TurtleGraphicsViewModel(TurtleGraphicsWindow view)
     {
@@ -51,6 +55,7 @@ public partial class TurtleGraphicsViewModel : ObservableObject
 
     [RelayCommand]
     public void RunByInput() => RunByString(RecursiveGen(Input, RecursiveTime));
+
     [RelayCommand]
     public void RunByRecorded() => RunByString(RecursiveGen(Recorded, RecursiveTime));
 
@@ -67,13 +72,39 @@ public partial class TurtleGraphicsViewModel : ObservableObject
         ResetRecorded();
     }
 
+    public event Action OnStopRunning;
+
+    public static Action RegisterOnce(Action target, Action toRegister)
+    {
+        void Once()
+        {
+            toRegister?.Invoke();
+            target -= Once;
+        }
+
+        target += Once;
+        return target;
+    }
+
     /// <summary>
     /// 重置状态和视图，但是不会重设 <see cref="recorded"/>，不会清空撤消重做栈
     /// </summary>
     private void Reset()
     {
-        IsRunning = false;
-        CurrentPoint = new Point(View.Width / 2, View.Height / 2);
+        if (isRunning)
+        {
+            OnStopRunning = RegisterOnce(OnStopRunning, ResetState);
+            isRunning = false;
+        }
+        else
+        {
+            ResetState();
+        }
+    }
+
+    private void ResetState()
+    {
+        CurrentPoint = new Point(View.ActualWidth / 2, View.ActualHeight / 2);
         CurrentDirection = new Vector(0, -1);
         SavedPositions.Clear();
         View.Reset();
@@ -106,18 +137,22 @@ public partial class TurtleGraphicsViewModel : ObservableObject
 
     public void RunByString(string str, bool wait = true)
     {
-        IsRunning = true;
+        isRunning = true;
         foreach (var c in str.Cast<char>())
         {
             RunByChar(c);
-            if (!IsRunning)
+            if (!isRunning)
+            {
+                OnStopRunning?.Invoke();
                 return;
+            }
+
             if (wait && WaitMs > 0)
                 App.Wait(WaitMs);
             // yield return null;
         }
 
-        IsRunning = false;
+        isRunning = false;
     }
 
     #endregion
@@ -125,7 +160,7 @@ public partial class TurtleGraphicsViewModel : ObservableObject
     #region Record Undo Redo
 
     private record Recorder(string RecordInput, Point CurrentPoint, Vector CurrentDirection,
-        Stack<Point> SavedPosition);
+        Stack<PosAndDir> SavedPosition);
 
     private Stack<Recorder> undoStack = new();
     private Stack<Recorder> redoStack = new();
@@ -196,7 +231,7 @@ public partial class TurtleGraphicsViewModel : ObservableObject
 
     public void SavePosition()
     {
-        SavedPositions.Push(CurrentPoint);
+        SavedPositions.Push(new(CurrentPoint, CurrentDirection));
         View.UpdateHintLine();
     }
 
@@ -204,7 +239,7 @@ public partial class TurtleGraphicsViewModel : ObservableObject
     {
         if (!SavedPositions.Any())
             return;
-        CurrentPoint = SavedPositions.Pop();
+        (CurrentPoint, CurrentDirection) = SavedPositions.Pop();
         View.UpdateHintLine();
     }
 

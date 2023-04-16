@@ -10,6 +10,7 @@ namespace PCG.GUI;
 
 public partial class TurtleGraphicsWindow : Window
 {
+    private GeometryGroup geometryGroup;
     public const Key FORWARD_KEY = Key.W;
     public const Key TURN_LEFT_KEY = Key.A;
     public const Key TURN_RIGHT_KEY = Key.D;
@@ -31,6 +32,7 @@ public partial class TurtleGraphicsWindow : Window
         TurtleCanvas.Children.Clear();
         AddHintLine();
         UpdateHintLine();
+        InitLineGroupShape();
     }
 
     private void AddHintLine()
@@ -51,9 +53,8 @@ public partial class TurtleGraphicsWindow : Window
         HintLine.X2 = end.X;
         HintLine.Y2 = end.Y;
     }
-
-    // TODO Batch drawing instead of Shape Controls
-    public void DrawLine(Point start, Point end)
+    
+    public void DrawLineDirectly(Point start, Point end)
     {
         var line = new Line()
         {
@@ -62,6 +63,24 @@ public partial class TurtleGraphicsWindow : Window
             StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round
         };
         TurtleCanvas.Children.Add(line);
+    }
+
+    // TODO Batch drawing instead of Shape Controls
+    public void DrawLine(Point start, Point end)
+    {
+        geometryGroup.Children.Add(new LineGeometry(start, end));
+    }
+
+    private void InitLineGroupShape()
+    {
+        geometryGroup = new GeometryGroup();
+        var path = new Path
+        {
+            Data = geometryGroup,
+            Stroke = Brushes.PaleVioletRed, StrokeThickness = 4,
+            StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round
+        };
+        TurtleCanvas.Children.Add(path);
     }
 
     private void TurtleCanvas_OnKeyDown(object sender, KeyEventArgs e)
