@@ -70,7 +70,7 @@ public partial class CaveCAViewModel : ObservableObject
         }
     }
 
-    private SolidColorBrush ToBrush(CaveCell c) =>
+    private SolidColorBrush ToBrush(int c) =>
         c switch
         {
             CaveCell.Empty => Brushes.DarkGray,
@@ -154,6 +154,24 @@ public partial class CaveCAViewModel : ObservableObject
 
         caveCa.DrawEdge();
         UpdateMap();
+    }
+
+    private bool isRunning = false;
+    [RelayCommand]
+    private void ExecuteForever()
+    {
+        isRunning = true;
+        while (isRunning)
+        {
+            caveCa.Automation();
+            UpdateShow();
+        }
+    }
+
+    [RelayCommand]
+    private void StopExecution()
+    {
+        isRunning = false;
     }
 
     private void UpdateShow()

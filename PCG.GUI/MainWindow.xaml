@@ -44,6 +44,8 @@
                 <TextBox Width="32" Text="{Binding ExecutionTimes, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <Button Command="{Binding ExecuteCommand}">直接执行</Button>
+            <Button Command="{Binding ExecuteForeverCommand}">循环执行</Button>
+            <Button Command="{Binding StopExecutionCommand}">停止循环执行</Button>
         </StackPanel>
         
         <UniformGrid Name="CavePanel" Rows="{Binding Height}" Columns="{Binding Width}" />

@@ -23,7 +23,7 @@ var value_noise_img = value_noise.ValueNoiseImg();
 var bilinear_noise_img = BilinearEnlarge4(value_noise).ValueNoiseImg();
 
 SaveImage(value_noise_img, "valueNoise");
-SaveImage(bilinear_noise_img, "bilinearNoise");
+SaveImage(bilinear_noise_img, "bilinearNoise"); 
 var clone = value_noise_img.Clone();
 clone.Mutate(c => c.Resize(new Size(WIDTH * 4, HEIGHT * 4), new BicubicResampler(), false));
 SaveImage(clone, "ImageSharpBiCubic");

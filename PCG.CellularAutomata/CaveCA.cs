@@ -2,23 +2,31 @@
 
 using System.Collections;
 using System.Diagnostics;
+using PCG.CellularAutomata;
 
-public enum CaveCell
+public static class CaveCell
 {
-    Empty,
-    Stone,
-    Wall,
-    ToDig,
+    public const int Empty = 0;
+    public const int Stone = 1;
+    public const int Wall = 2;
+    public const int ToDig = 3;
+}
+
+public static class SpecialCell
+{
+    public const int Any = -1;
+    public const int Keep = -2;
 }
 
 public class CaveCA
 {
+
     public double ToWallRatio { get; set; } = 0.4;
     public int Width { get; set; }
     public int Height { get; set; }
     public double CavePercent { get; set; }
     public int ExecuteTimes { get; set; }
-    public CaveCell[,] Map { get; set; }
+    public int[,] Map { get; set; }
 
     private Random Random { get; set; } = new Random();
     public int Seed { get; set; }
@@ -29,9 +37,11 @@ public class CaveCA
         Height = height;
         CavePercent = cavePercent;
         ExecuteTimes = executeTimes;
-        Map = new CaveCell[Height, Width];
+        Map = new int[Height, Width];
         RoomMap = new int[Height, Width];
     }
+
+    public int GetCell(int x, int y) => Map[y, x];
 
     #region Execution
 
@@ -52,7 +62,7 @@ public class CaveCA
         Random = new Random(Seed);
         Console.WriteLine("The random seed is: " + Seed);
 
-        Map = new CaveCell[Height, Width];
+        Map = new int[Height, Width];
 
         for (int y = 0; y < Height; y++)
         for (int x = 0; x < Width; x++)
@@ -61,14 +71,21 @@ public class CaveCA
                 : CaveCell.Empty;
     }
 
+    public static readonly CARule rule =
+        new CellCountRule(SpecialCell.Any, CaveCell.Stone, CaveCell.Stone, NeighborType.Square, 5);
+
+    private CARule[] CaRules = { rule };
+
     public void Automation()
+        => AutomationByRule(CaRules);
+    public void AutomationFormal()
     {
-        var newMap = new CaveCell[Height, Width];
+        var newMap = new int[Height, Width];
 
         for (int y = 0; y < Height; y++)
         for (int x = 0; x < Width; x++)
         {
-            var all_neighbors = GetAllNeighbors(x, y);
+            var all_neighbors = GetAllNeighborsInSquare(x, y);
             // ReSharper disable PossibleMultipleEnumeration
             var be_stone = (all_neighbors.Count(IsStone) / (double)all_neighbors.Count()) > ToWallRatio;
             // var stone_count = GetNeighborCountWhere(x, y, c => c == CaveCell.Stone);
@@ -78,11 +95,29 @@ public class CaveCA
         Map = newMap;
     }
 
-    private bool IsStone(CaveCell c) => c is CaveCell.Stone or CaveCell.Wall;
+    public void AutomationByRule(IEnumerable<CARule> rules)
+    {
+        
+        var newMap = new int[Height, Width];
+
+        for (int y = 0; y < Height; y++)
+        for (int x = 0; x < Width; x++)
+        {
+            var results = rules
+                .Select(r => (r.GetNewValue(this, x, y, out var result), result)).ToList();
+            var cell = results
+                .FirstOrDefault(t => t.Item1).result;
+            newMap[y, x] = cell;
+        }
+
+        Map = newMap;
+    }
+
+    private bool IsStone(int c) => c is CaveCell.Stone or CaveCell.Wall;
 
     public void DrawEdge()
     {
-        var newMap = new CaveCell[Height, Width];
+        var newMap = new int[Height, Width];
 
         for (int y = 0; y < Height; y++)
         for (int x = 0; x < Width; x++)
@@ -203,7 +238,7 @@ public class CaveCA
     {
         var (y0, x0) = connection.EdgeA;
         var (y1, x1) = connection.EdgeB;
-        
+
         // test dig point
         // Map[y0, x0] = CaveCell.ToDig;
         // Map[y1, x1] = CaveCell.ToDig;
@@ -238,7 +273,7 @@ public class CaveCA
 
     #region Neighbors
 
-    public IEnumerable<Pos> GetAllNeighborsPos(int x, int y)
+    public IEnumerable<Pos> GetAllNeighborsPosInSquare(int x, int y)
     {
         if (x > 0)
         {
@@ -286,14 +321,22 @@ public class CaveCA
         }
     }
 
-    public IEnumerable<CaveCell> GetAllNeighborsInCross(Pos pos)
+    public IEnumerable<int> GetAllNeighborsInCross(Pos pos)
         => GetAllNeighborsInCross(pos.X, pos.Y);
 
-    public IEnumerable<CaveCell> GetAllNeighborsInCross(int x, int y)
+    public IEnumerable<int> GetAllNeighborsInCross(int x, int y)
         => GetAllNeighborsPosInCross(x, y).Select(pos => Map[pos.Y, pos.X]);
 
-    public IEnumerable<CaveCell> GetAllNeighbors(int x, int y)
-        => GetAllNeighborsPos(x, y).Select(pos => Map[pos.Y, pos.X]);
+    public IEnumerable<int> GetAllNeighborsInSquare(int x, int y)
+        => GetAllNeighborsPosInSquare(x, y).Select(pos => Map[pos.Y, pos.X]);
+
+    public IEnumerable<int> GetAllNeighbors(NeighborType neighborType, int x, int y)
+        => neighborType == NeighborType.Square ? GetAllNeighborsInSquare(x, y) : GetAllNeighborsInCross(x, y);
+
+    public IEnumerable<Pos> GetAllNeighborsPos(NeighborType neighborType, int x, int y)
+        => neighborType == NeighborType.Square
+            ? GetAllNeighborsPosInSquare(x, y)
+            : GetAllNeighborsPosInCross(x, y);
 
     #endregion
 }
