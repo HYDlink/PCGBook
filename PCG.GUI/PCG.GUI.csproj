@@ -9,6 +9,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PCG.CellularAutomata\PCG.CellularAutomata.csproj" />
+      <ProjectReference Include="..\PCG.Dungeon\PCG.Dungeon.csproj" />
+      <ProjectReference Include="..\PCG.Grammar\PCG.Grammar.csproj" />
+      <ProjectReference Include="..\PCG.Noise\PCG.Noise.csproj" />
     </ItemGroup>
 
     <ItemGroup>

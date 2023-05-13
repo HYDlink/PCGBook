@@ -6,6 +6,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using static PCG.Noise.BilinearFilterClass;
 using static PCG.Noise.DiamondFractalClass;
+using static PCG.Common.Utilities;
 
 Console.WriteLine("Hello, World!");
 const int WIDTH = 32;
@@ -22,17 +23,17 @@ var value_noise_img = value_noise.ValueNoiseImg();
 // bilinear filter
 var bilinear_noise_img = BilinearEnlarge4(value_noise).ValueNoiseImg();
 
-SaveImage(value_noise_img, "valueNoise");
-SaveImage(bilinear_noise_img, "bilinearNoise"); 
+value_noise_img.SaveImage("valueNoise");
+bilinear_noise_img.SaveImage("bilinearNoise");
 var clone = value_noise_img.Clone();
 clone.Mutate(c => c.Resize(new Size(WIDTH * 4, HEIGHT * 4), new BicubicResampler(), false));
-SaveImage(clone, "ImageSharpBiCubic");
+clone.SaveImage("ImageSharpBiCubic");
 
 
 var diamond_filter = DiamondSteps(value_noise, random, 8);
 // DiamondFilter(DiamondFilter(DiamondFilter(value_noise)));
 var diamond_img = diamond_filter.ValueNoiseImg();
-SaveImage(diamond_img, "DiamondFilter");
+diamond_img.SaveImage("DiamondFilter");
 
 T Recursive<T>(T value, Func<T, T> func, int times)
 {
@@ -40,12 +41,4 @@ T Recursive<T>(T value, Func<T, T> func, int times)
     for (int i = 0; i < times; i++) tmp = func(tmp);
 
     return tmp;
-}
-
-
-void SaveImage<TPixel>(Image<TPixel> outputImg, string name = "corner") where TPixel : unmanaged, IPixel<TPixel>
-{
-    var output_corner_x4_png = $"{name}.png";
-    outputImg.Save(output_corner_x4_png, new PngEncoder());
-    Process.Start(new ProcessStartInfo(output_corner_x4_png) { UseShellExecute = true });
 }
