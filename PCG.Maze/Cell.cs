@@ -11,6 +11,10 @@ public record class Cell(int X, int Y)
     public bool HasRight => Right != null;
     public bool HasUp => Up != null;
     public bool HasDown => Down != null;
+    public bool HasLinkLeft => HasLeft && Links.Contains(Left);
+    public bool HasLinkRight => HasRight && Links.Contains(Right);
+    public bool HasLinkUp => HasUp && Links.Contains(Up);
+    public bool HasLinkDown => HasDown && Links.Contains(Down);
 
     public IEnumerable<Cell> GetNeighbors()
     {
@@ -46,4 +50,5 @@ public record class Cell(int X, int Y)
     }
 
     public bool IsLinked(Cell cell) => Links.Contains(cell);
+    public bool IsDeadEnd => Links.Count == 1;
 }

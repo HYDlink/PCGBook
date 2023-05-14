@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
+using PCG.Common;
+using PCG.Maze.MazeShape;
 
 namespace PCG.Maze;
 
@@ -11,11 +14,9 @@ public class MazeGenerator
         this.grid = grid;
     }
 
-    public void BinaryTreeLink()
+    public void BinaryTreeLink(Action<Grid>? onStepFinish = null)
     {
-        var seed = new Random().Next();
-        Console.WriteLine($"Binary Tree Link, Random seed: {seed}");
-        var random = new Random(seed);
+        var random = Utilities.CreateRandomWithPrintedSeed();
         var peek_right_percent = 0.6f;
 
         for (var y = 0; y < grid.Height; y++)
@@ -38,14 +39,14 @@ public class MazeGenerator
             {
                 cell.Link(cell.Down);
             }
+
+            onStepFinish?.Invoke(grid);
         }
     }
 
-    public void SidewinderLink()
+    public void SidewinderLink(Action<Grid>? onStepFinish = null)
     {
-        var seed = new Random().Next();
-        Console.WriteLine($"Sidewinder Link, Random seed: {seed}");
-        var random = new Random(seed);
+        var random = Utilities.CreateRandomWithPrintedSeed();
         var peek_right_percent = 0.6f;
 
         for (var y = 0; y < grid.Height; y++)
@@ -74,6 +75,8 @@ public class MazeGenerator
                     to_down_cell.Link(down, true);
                     run_start = x + 1;
                 }
+
+                onStepFinish?.Invoke(grid);
             }
         }
     }
@@ -83,13 +86,11 @@ public class MazeGenerator
     ///     如果这个邻居没有被访问，那么和这个邻居连接起来，否则什么都不做<br/>
     ///     从这个新邻居开始，继续随机访问它的邻居
     /// </summary>
-    public void AldousBroderLink()
+    public void AldousBroderLink(Action<Grid>? onStepFinish = null)
     {
-        var seed = new Random().Next();
-        Console.WriteLine($"Aldous-Broder Link, Random seed: {seed}");
-        var random = new Random(seed);
+        var random = Utilities.CreateRandomWithPrintedSeed();
 
-        var unvisited = grid.Cells.Cast<Cell>().ToList();
+        var unvisited = grid.GetAllCells();
         Shuffle(unvisited, random);
 
         var last = unvisited.Last();
@@ -97,7 +98,7 @@ public class MazeGenerator
 
         while (unvisited.Any())
         {
-            var neighbor = Grid.GetRandomNeighbor(last, random);
+            var neighbor = GetRandomNeighbor(last, random);
             if (unvisited.Contains(neighbor))
             {
                 last.Link(neighbor, true);
@@ -105,6 +106,7 @@ public class MazeGenerator
             }
 
             last = neighbor;
+            onStepFinish?.Invoke(grid);
         }
     }
 
@@ -114,14 +116,11 @@ public class MazeGenerator
     /// 游走的过程中如果形成了环，那就消除这个环路径；
     /// 如此循环，直到所有点都被访问过
     /// </summary>
-    public void WilsonLink()
+    public void WilsonLink(Action<Grid>? onStepFinish = null)
     {
-        var seed = new Random().Next();
-        Console.WriteLine($"Wilson Link, Random seed: {seed}");
-        // var random = new Random(seed);
-        var random = new Random(1251779763);
+        var random = Utilities.CreateRandomWithPrintedSeed();
 
-        var unvisited = grid.Cells.Cast<Cell>().ToList();
+        var unvisited = grid.GetAllCells();
         Shuffle(unvisited, random);
         var start_visit = unvisited.Last();
         unvisited.Remove(start_visit);
@@ -132,7 +131,7 @@ public class MazeGenerator
             var path = new List<Cell> { last };
             while (true)
             {
-                var neighbor = Grid.GetRandomNeighbor(last, random);
+                var neighbor = GetRandomNeighbor(last, random);
 
                 // 移除环状路径
                 var index = path.IndexOf(neighbor);
@@ -156,16 +155,54 @@ public class MazeGenerator
             }
 
             unvisited.Remove(path.Last());
+            onStepFinish?.Invoke(grid);
         }
     }
 
-    public void BackTrackLink()
+    /// <summary>
+    /// 选取一块没有被访问过的 Cell，然后随机往邻居不断探索，直到遇到已经访问过的 Cell 或者是墙壁。<br/>
+    /// 在已经访问过的 Cell 中，随机选取它们其中一个没有链接上的邻居，继续上面的步骤，直到所有 Cell 被访问过
+    /// </summary>
+    /// <param name="onStepFinish"></param>
+    public void HuntAndKillLink(Action<Grid>? onStepFinish = null)
     {
-        var seed = new Random().Next();
-        Console.WriteLine($"BackTrack Link, Random seed: {seed}");
-        var random = new Random(seed);
+        var random = Utilities.CreateRandomWithPrintedSeed();
+        var unvisited = grid.GetAllCells();
+        var visited = new List<Cell>();
+        Shuffle(unvisited, random);
 
-        var unvisited = grid.Cells.Cast<Cell>().ToList();
+        void Hunt(Cell cell)
+        {
+            var cur = cell;
+            while (unvisited.Contains(cur))
+            {
+                unvisited.Remove(cur);
+                visited.Add(cur);
+                var neighbor = GetRandomNeighbor(cur, random);
+                if (unvisited.Contains(neighbor))
+                    cur.Link(neighbor, true);
+                cur = neighbor;
+            }
+            onStepFinish?.Invoke(grid);
+        }
+
+        var first_hunt = unvisited.Last();
+        Hunt(first_hunt);
+        while (unvisited.Any())
+        {
+            var hunt = visited.SelectMany(v => v.GetNeighbors().Where(unvisited.Contains))
+                .ToArray().RandomItem(random);
+            var neighbor = hunt.GetNeighbors().First(visited.Contains);
+            hunt.Link(neighbor);
+            Hunt(hunt);
+        }
+    }
+
+    public void BackTrackLink(Action<Grid>? onStepFinish = null)
+    {
+        var random = Utilities.CreateRandomWithPrintedSeed();
+
+        var unvisited = grid.GetAllCells();
 
         void DFS(Cell cell)
         {
@@ -182,7 +219,8 @@ public class MazeGenerator
             }
         }
 
-        DFS(grid.Cells[0, 0]);
+        while (unvisited.Any())
+            DFS(unvisited.First());
     }
 
     public static void Shuffle<T>(IList<T> list, Random rng)
@@ -194,5 +232,10 @@ public class MazeGenerator
             int k = rng.Next(n + 1);
             (list[k], list[n]) = (list[n], list[k]);
         }
+    }
+
+    public static Cell GetRandomNeighbor(Cell cell, Random random)
+    {
+        return cell.GetNeighbors().ToArray().RandomItem(random);
     }
 }
