@@ -5,7 +5,7 @@ namespace PCG.Maze.ValueMap;
 public record DeadEndMap(int Width, int Height) : Map2D(Width, Height)
 {
     public Grid Grid { get; init; }
-    public List<Cell> DeadEnds { get; set; }
+    public List<GridCell> DeadEnds { get; set; }
     public int DeadEndsCount => DeadEnds.Count;
 
     public static DeadEndMap GetDeadEndMap(Grid grid)
@@ -14,7 +14,7 @@ public record DeadEndMap(int Width, int Height) : Map2D(Width, Height)
         var width = grid.Width;
         var map = new DeadEndMap(width, height) { Grid = grid };
 
-        var dead_ends = map.DeadEnds = grid.Cells.Cast<Cell>().Where(c => c.IsDeadEnd).ToList();
+        var dead_ends = map.DeadEnds = grid.Cells.Cast<GridCell>().Where(c => c.IsDeadEnd).ToList();
         foreach (var dead_end in dead_ends)
         {
             map[dead_end] = DeadEndValue;
@@ -22,13 +22,13 @@ public record DeadEndMap(int Width, int Height) : Map2D(Width, Height)
 
         foreach (var dead_end in dead_ends)
         {
-            var cur_cell = dead_end.Links.First();
+            var cur_cell = dead_end.GetLinks().First();
             // const int splitCell = 3;
             const int corridorCell = 2;
-            while (cur_cell.Links.Count == corridorCell)
+            while (cur_cell.GetLinks().Count() == corridorCell)
             {
                 map[cur_cell] = corridorCell;
-                cur_cell = cur_cell.Links.First(link => link != cur_cell);
+                cur_cell = cur_cell.GetLinks().First(link => link != cur_cell);
             }
         }
 
@@ -42,9 +42,9 @@ public record DeadEndMap(int Width, int Height) : Map2D(Width, Height)
     public static readonly Rgba32 DeadEndCorridorColor = new Rgba32(0.5f, 0, 1f);
     public static readonly Rgba32 NothingColor = new Rgba32(0.5f, 0, 0f, 0f);
 
-    public Func<Cell, Rgba32> GetCellColorGetter()
+    public Func<GridCell, Rgba32> GetCellColorGetter()
     {
-        Rgba32 GetColor(Cell cell)
+        Rgba32 GetColor(GridCell cell)
         {
             return this[cell] switch
             {

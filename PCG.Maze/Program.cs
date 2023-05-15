@@ -61,6 +61,36 @@ void RecordGif(MazeGenerator generator)
     images.EncodeGif();
 }
 
+var circle = new Circle(6, 20);
+
+void BackTrackLink(Circle maze, Action<Grid>? onStepFinish = null)
+{
+    var random = Utilities.CreateRandomWithPrintedSeed();
+
+    var unvisited = maze.GetAllCells().ToList();
+
+    void DFS(CircleCell cell)
+    {
+        unvisited.Remove(cell);
+        var neighbors = cell.GetNeighbors().ToList();
+        Utilities.Shuffle(neighbors, random);
+        foreach (var neighbor in neighbors)
+        {
+            if (unvisited.Contains(neighbor))
+            {
+                cell.Link(neighbor, true);
+                DFS(neighbor);
+            }
+        }
+    }
+
+    while (unvisited.Any())
+        DFS(unvisited.First());
+}
+
+// BackTrackLink(circle);
+circle.DrawImage().SaveImage("CircleMaze");
+
 
 // grid.Print();
 // var distance_value = DistanceMap.GetDistanceMap(grid, 16, 16);

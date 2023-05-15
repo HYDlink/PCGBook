@@ -4,14 +4,14 @@ using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace PCG.Maze.MazeShape;
 
-public class Grid : IMazeMap
+public class Grid : IMazeMap<GridCell>
 {
     public int Width { get; set; }
     public int Height { get; set; }
 
-    public Cell?[,] Cells { get; set; }
+    public GridCell?[,] Cells { get; set; }
 
-    public List<Cell> GetAllCells() => Cells.OfType<Cell>().ToList();
+    public IEnumerable<GridCell> GetAllCells() => Cells.OfType<GridCell>().ToList();
 
     public Grid(int width, int height)
     {
@@ -20,10 +20,10 @@ public class Grid : IMazeMap
 
         Debug.Assert(Width >= 2 && Height >= 2);
 
-        Cells = new Cell[Height, Width];
+        Cells = new GridCell[Height, Width];
         for (var y = 0; y < Height; y++)
         for (var x = 0; x < Width; x++)
-            Cells[y, x] = new Cell(x, y);
+            Cells[y, x] = new GridCell(x, y);
 
         // 设置 Cell 的邻居方向
         SetAllCellsNeighbor();
@@ -36,11 +36,11 @@ public class Grid : IMazeMap
 
         Debug.Assert(Width >= 2 && Height >= 2);
 
-        Cells = new Cell[Height, Width];
+        Cells = new GridCell[Height, Width];
         for (var y = 0; y < Height; y++)
         for (var x = 0; x < Width; x++)
             if (maskGrid[y, x] != MaskGrid.InaccesableValue)
-                Cells[y, x] = new Cell(x, y);
+                Cells[y, x] = new GridCell(x, y);
 
         // 设置 Cell 的邻居方向
         SetAllCellsNeighbor();
@@ -76,7 +76,7 @@ public class Grid : IMazeMap
         }
     }
 
-    public string CellToString(Cell cell) => "    ";
+    public string CellToString(GridCell cell) => "    ";
 
     public void Print()
     {
@@ -114,9 +114,9 @@ public class Grid : IMazeMap
         Console.WriteLine(sb.ToString());
     }
 
-    public Image<Rgba32> DrawImage(Func<Cell, Rgba32>? cellColorGetter = null)
+    public Image<Rgba32> DrawImage(Func<GridCell, Rgba32>? cellColorGetter = null)
     {
-        Rgba32 defaultCellColorGetter(Cell cell) =>
+        Rgba32 defaultCellColorGetter(GridCell cell) =>
             new Rgba32((float)(cell.X + 1) / Width, (float)(cell.Y + 1) / Height, 0f, 1f);
 
         // cellColorGetter ??= defaultCellColorGetter;

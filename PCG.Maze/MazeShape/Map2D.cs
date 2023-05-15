@@ -10,7 +10,7 @@ public record Map2D(int Width, int Height)
         set => values[y, x] = value;
     }
 
-    public int this[Cell cell]
+    public int this[GridCell cell]
     {
         get => values[cell.Y, cell.X];
         set => values[cell.Y, cell.X] = value;

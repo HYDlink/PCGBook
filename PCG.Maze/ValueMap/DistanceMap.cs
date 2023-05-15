@@ -7,7 +7,7 @@ public record DistanceMap(int Width, int Height) : Map2D(Width, Height)
     public Grid Grid { get; init; }
     public static DistanceMap GetDistanceMap(Grid grid, int startX, int startY)
         => GetDistanceMap(grid, grid.Cells[startY, startX]);
-    public static DistanceMap GetDistanceMap(Grid grid, Cell? startCell)
+    public static DistanceMap GetDistanceMap(Grid grid, GridCell? startCell)
     {
         ArgumentNullException.ThrowIfNull(startCell);
         
@@ -20,9 +20,9 @@ public record DistanceMap(int Width, int Height) : Map2D(Width, Height)
 
         distance[startCell] = 0;
 
-        void Dfs(Cell cell)
+        void Dfs(GridCell cell)
         {
-            foreach (var neighbor in cell.Links)
+            foreach (var neighbor in cell.GetLinks())
             {
                 var new_dist = distance[cell] + 1;
                 var formal_dist = distance[neighbor];
@@ -39,11 +39,11 @@ public record DistanceMap(int Width, int Height) : Map2D(Width, Height)
         return distance;
     }
 
-    public Func<Cell, Rgba32> GetCellColorByDistanceValue()
+    public Func<GridCell, Rgba32> GetCellColorByDistanceValue()
     {
         var max_dist = Width * Height / 2;
 
-        Rgba32 getColor(Cell cell)
+        Rgba32 getColor(GridCell cell)
         {
             float dist_percent = (float)this[cell] / max_dist;
             return new Rgba32(1f, 0, 1f, dist_percent);

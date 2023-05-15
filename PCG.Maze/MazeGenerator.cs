@@ -90,7 +90,7 @@ public class MazeGenerator
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
 
-        var unvisited = grid.GetAllCells();
+        var unvisited = grid.GetAllCells().ToList();
         Shuffle(unvisited, random);
 
         var last = unvisited.Last();
@@ -120,7 +120,7 @@ public class MazeGenerator
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
 
-        var unvisited = grid.GetAllCells();
+        var unvisited = grid.GetAllCells().ToList();
         Shuffle(unvisited, random);
         var start_visit = unvisited.Last();
         unvisited.Remove(start_visit);
@@ -128,7 +128,7 @@ public class MazeGenerator
         while (unvisited.Any())
         {
             var last = unvisited.Last();
-            var path = new List<Cell> { last };
+            var path = new List<GridCell> { last };
             while (true)
             {
                 var neighbor = GetRandomNeighbor(last, random);
@@ -167,11 +167,11 @@ public class MazeGenerator
     public void HuntAndKillLink(Action<Grid>? onStepFinish = null)
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
-        var unvisited = grid.GetAllCells();
-        var visited = new List<Cell>();
+        var unvisited = grid.GetAllCells().ToList();
+        var visited = new List<GridCell>();
         Shuffle(unvisited, random);
 
-        void Hunt(Cell cell)
+        void Hunt(GridCell cell)
         {
             var cur = cell;
             while (unvisited.Contains(cur))
@@ -202,9 +202,9 @@ public class MazeGenerator
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
 
-        var unvisited = grid.GetAllCells();
+        var unvisited = grid.GetAllCells().ToList();
 
-        void DFS(Cell cell)
+        void DFS(GridCell cell)
         {
             unvisited.Remove(cell);
             var neighbors = cell.GetNeighbors().ToList();
@@ -234,7 +234,7 @@ public class MazeGenerator
         }
     }
 
-    public static Cell GetRandomNeighbor(Cell cell, Random random)
+    public static GridCell GetRandomNeighbor(GridCell cell, Random random)
     {
         return cell.GetNeighbors().ToArray().RandomItem(random);
     }

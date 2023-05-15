@@ -1,11 +1,11 @@
-﻿namespace PCG.Maze;
+﻿namespace PCG.Maze.MazeShape;
 
-public record class Cell(int X, int Y)
+public record GridCell(int X, int Y): CellBase
 {
-    public Cell? Left { get; set; }
-    public Cell? Right { get; set; }
-    public Cell? Up { get; set; }
-    public Cell? Down { get; set; }
+    public GridCell? Left { get; set; }
+    public GridCell? Right { get; set; }
+    public GridCell? Up { get; set; }
+    public GridCell? Down { get; set; }
 
     public bool HasLeft => Left != null;
     public bool HasRight => Right != null;
@@ -16,7 +16,7 @@ public record class Cell(int X, int Y)
     public bool HasLinkUp => HasUp && Links.Contains(Up);
     public bool HasLinkDown => HasDown && Links.Contains(Down);
 
-    public IEnumerable<Cell> GetNeighbors()
+    public override IEnumerable<GridCell> GetNeighbors()
     {
 #pragma warning disable CS8603
         if (HasLeft)
@@ -30,25 +30,10 @@ public record class Cell(int X, int Y)
 #pragma warning restore CS8603
     }
 
-    public HashSet<Cell> Links { get; } = new();
-
-    public void Link(Cell cell, bool isBidir = false)
-    {
-        Links.Add(cell);
-        if (isBidir) cell.Link(this);
-    }
-    
-    public void UnLink(Cell cell, bool isBidir = false)
-    {
-        Links.Add(cell);
-        if (isBidir) cell.UnLink(this);
-    }
+    public override IEnumerable<GridCell> GetLinks() => Links.OfType<GridCell>();
 
     public override int GetHashCode()
     {
         return HashCode.Combine(X, Y);
     }
-
-    public bool IsLinked(Cell cell) => Links.Contains(cell);
-    public bool IsDeadEnd => Links.Count == 1;
 }
