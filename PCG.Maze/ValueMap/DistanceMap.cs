@@ -2,45 +2,51 @@
 
 namespace PCG.Maze.ValueMap;
 
-public record DistanceMap(int Width, int Height) : Map2D(Width, Height)
+public class DistanceMap<TCell> where TCell : CellBase
 {
-    public Grid Grid { get; init; }
+    public IMazeMap<TCell> Grid { get; private set; }
     public int MaxDist { get; private set; }
 
-    public static DistanceMap GetDistanceMap(Grid grid, int startX, int startY)
-        => GetDistanceMap(grid, grid.Cells[startY, startX]);
+    private Dictionary<CellBase, int> values = new();
 
-    public static DistanceMap GetDistanceMap(Grid grid, GridCell? startCell)
+    public int this[TCell cell]
+    {
+        get => values[cell];
+        set => values[cell] = value;
+    }
+
+    public DistanceMap(IMazeMap<TCell> grid, TCell? startCell)
     {
         ArgumentNullException.ThrowIfNull(startCell);
-
-        var height = grid.Height;
-        var width = grid.Width;
-        var distance = new DistanceMap(width, height) { Grid = grid };
-        for (var y = 0; y < height; y++)
-        for (var x = 0; x < width; x++)
-            distance[y, x] = Int32.MaxValue;
-
-        distance[startCell] = 0;
-
-        void Dfs(GridCell cell)
+        Grid = grid;
+        foreach (var cell in grid.GetAllCells())
         {
-            foreach (var neighbor in cell.GetLinks())
+            this[cell] = Int32.MaxValue;
+        }
+
+        this[startCell] = 0;
+
+        void Dfs(TCell cell)
+        {
+            foreach (var neighbor in cell.GetLinks().OfType<TCell>())
             {
-                var new_dist = distance[cell] + 1;
-                var formal_dist = distance[neighbor];
+                var new_dist = this[cell] + 1;
+                var formal_dist = this[neighbor];
                 if (new_dist < formal_dist)
                 {
-                    distance[neighbor] = new_dist;
+                    this[neighbor] = new_dist;
                     Dfs(neighbor);
                 }
             }
         }
 
         Dfs(startCell);
-        distance.MaxDist = distance.values.Cast<int>().Max();
+        MaxDist = values.Values.Max();
+    }
 
-        return distance;
+    private DistanceMap(IMazeMap<TCell> grid)
+    {
+        Grid = grid;
     }
 
     /// <summary>
@@ -48,20 +54,21 @@ public record DistanceMap(int Width, int Height) : Map2D(Width, Height)
     /// </summary>
     /// <param name="endCell"></param>
     /// <returns></returns>
-    public DistanceMap GetPathMap(GridCell endCell)
+    public DistanceMap<TCell> GetPathMap(TCell endCell)
     {
-        var path_map = new DistanceMap(Width, Height) { MaxDist = MaxDist };
+        var path_map = new DistanceMap<TCell>(Grid) { MaxDist = MaxDist };
 
-        for (var y = 0; y < Height; y++)
-        for (var x = 0; x < Width; x++)
-            path_map[y, x] = MaxDist;
+        foreach (var cell in Grid.GetAllCells())
+        {
+            path_map[cell] = MaxDist;
+        }
 
         path_map[endCell] = this[endCell];
 
         var cur_cell = endCell;
         while (this[cur_cell] != 0)
         {
-            var prev_path = cur_cell.GetLinks().FirstOrDefault(c => this[c] < this[cur_cell]);
+            var prev_path = cur_cell.GetLinks().OfType<TCell>().FirstOrDefault(c => this[c] < this[cur_cell]);
             if (prev_path is null)
                 break;
             path_map[prev_path] = this[prev_path];
@@ -71,15 +78,15 @@ public record DistanceMap(int Width, int Height) : Map2D(Width, Height)
         return path_map;
     }
 
-    public Func<GridCell, Rgba32> GetCellColorByDistanceValue(bool newColorWithMaxDist = false)
+    public Func<TCell, Rgba32> GetCellColorByDistanceValue(bool newColorWithMaxDist = false)
     {
-        Rgba32 GetColor(GridCell cell)
+        Rgba32 GetColor(TCell cell)
         {
             float dist_percent = (float)this[cell] / MaxDist;
             return new Rgba32(1f, 0, 1f, dist_percent);
         }
 
-        Rgba32 GetColorSpecial(GridCell cell)
+        Rgba32 GetColorSpecial(TCell cell)
         {
             if (this[cell] == MaxDist)
                 return new Rgba32(0, 0, 1f, 1f);

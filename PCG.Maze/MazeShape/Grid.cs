@@ -116,18 +116,19 @@ public class Grid : IMazeMap<GridCell>
 
     public Image<Rgba32> DrawImage(Func<GridCell, Rgba32>? cellColorGetter = null)
     {
-        Rgba32 defaultCellColorGetter(GridCell cell) =>
+        Rgba32 DefaultCellColorGetter(GridCell cell) =>
             new Rgba32((float)(cell.X + 1) / Width, (float)(cell.Y + 1) / Height, 0f, 1f);
 
-        // cellColorGetter ??= defaultCellColorGetter;
+        // cellColorGetter ??= DefaultCellColorGetter;
 
-        const int cellWidth = 8;
-        const int cellHeight = 8;
+        const int cellWidth = 16;
+        const int cellHeight = 16;
+        var line_thickness = 2;
+        
         var cell_size = new SizeF(cellWidth, cellHeight);
         var image_width = Width * cellWidth;
         var image_height = Height * cellHeight;
         var image = new Image<Rgba32>(image_width, image_height);
-        var line_thickness = 2;
         image.Mutate(ctx =>
         {
             // 先填充底色
@@ -138,10 +139,10 @@ public class Grid : IMazeMap<GridCell>
 
             void FillCellsColor()
             {
+                if (cellColorGetter is null) return;
                 for (var y = 0; y < Height; y++)
                 for (var x = 0; x < Width; x++)
                 {
-                    if (cellColorGetter is null) continue;
                     var cell = Cells[y, x];
                     if (cell is null) continue;
                     var lt = new PointF(x * cellWidth, y * cellHeight);
@@ -154,8 +155,14 @@ public class Grid : IMazeMap<GridCell>
                 }
             }
 
-            // DrawGridLines
-            // 之前采用的是，从上往下从左往右，对每个网格只绘制它的左侧和上侧，最后再加上顶线和底线
+            (PointF lt, PointF lb, PointF rb, PointF rt) GetCellPoints(int x, int y)
+            {
+                var lt = new PointF(x * cellWidth, y * cellHeight);
+                var lb = new PointF(x * cellWidth, (y + 1) * cellHeight);
+                var rb = new PointF((x + 1) * cellWidth, (y + 1) * cellHeight);
+                var rt = new PointF((x + 1) * cellWidth, y * cellHeight);
+                return (lt, lb, rb, rt);
+            }
 
             void DrawAllCellsLines()
             {
@@ -165,10 +172,7 @@ public class Grid : IMazeMap<GridCell>
                     var cell = Cells[y, x];
                     if (cell is null) continue;
 
-                    var lt = new PointF(x * cellWidth, y * cellHeight);
-                    var lb = new PointF(x * cellWidth, (y + 1) * cellHeight);
-                    var rb = new PointF((x + 1) * cellWidth, (y + 1) * cellHeight);
-                    var rt = new PointF((x + 1) * cellWidth, y * cellHeight);
+                    var (lt, lb, rb, rt) = GetCellPoints(x, y);
 
                     if (!cell.HasLinkUp)
                         ctx.DrawLines(line_color, line_thickness, lt, rt);
@@ -190,34 +194,171 @@ public class Grid : IMazeMap<GridCell>
                     var cell = Cells[y, x];
                     Debug.Assert(cell != null);
 
-                    var lt = new PointF(x * cellWidth, y * cellHeight);
-                    var lb = new PointF(x * cellWidth, (y + 1) * cellHeight);
-                    var rb = new PointF((x + 1) * cellWidth, (y + 1) * cellHeight);
-                    var rt = new PointF((x + 1) * cellWidth, y * cellHeight);
+                    var (lt, lb, rb, rt) = GetCellPoints(x, y);
 
                     if (!cell.HasLinkUp)
                         ctx.DrawLines(line_color, line_thickness, lt, rt);
                     if (!cell.HasLinkLeft)
                         ctx.DrawLines(line_color, line_thickness, lt, lb);
-                    if (!cell.HasLinkDown)
-                        ctx.DrawLines(line_color, line_thickness, lb, rb);
-                    if (!cell.HasLinkRight)
-                        ctx.DrawLines(line_color, line_thickness, rt, rb);
                 }
 
-                // Top and Bottom Line
-                ctx.DrawLines(line_color, line_thickness, new PointF(0, 0), new PointF(image_width, 0));
+                // Draw Right Line
+                ctx.DrawLines(line_color, line_thickness, new PointF(image_width, 0),
+                    new PointF(image_width, image_height));
+                // Draw Bottom Line
                 ctx.DrawLines(line_color, line_thickness, new PointF(0, image_height),
                     new PointF(image_width, image_height));
             }
 
             FillCellsColor();
             DrawAllCellsLines();
+            // DrawCellLinesInFullGrid();
         });
 
         return image;
-        // Utilities.SaveImage(image, "Maze");
-        // image.Dispose();
+    }
+
+    private struct InsetCellPoints
+    {
+        public int x0, x1, x2, x3;
+        public int y0, y1, y2, y3;
+    }
+
+    public Image<Rgba32> DrawImageWithInset(Func<GridCell, Rgba32>? cellColorGetter = null)
+    {
+        const int cellWidth = 16;
+        const int cellHeight = 16;
+        const int inset = 2;
+        const int innerCellWidth = cellWidth - 2 * inset;
+        const int innerCellHeight = cellHeight - 2 * inset;
+        
+        var line_thickness = 1;
+        
+        var inner_cell_size = new SizeF(innerCellWidth, innerCellHeight);
+        var image_width = Width * cellWidth;
+        var image_height = Height * cellHeight;
+        var image = new Image<Rgba32>(image_width, image_height);
+        
+        image.Mutate(ctx =>
+        {
+            // 先填充底色
+            var base_color = Color.White;
+            ctx.Fill(base_color, new RectangleF(0, 0, image_width, image_height));
+
+            var line_color = Color.Black;
+
+            void FillCellsColor()
+            {
+                if (cellColorGetter is null) return;
+                for (var y = 0; y < Height; y++)
+                for (var x = 0; x < Width; x++)
+                {
+                    var cell = Cells[y, x];
+                    if (cell is null) continue;
+                    var lt = new PointF(x * cellWidth + inset, y * cellHeight + inset);
+                    var rgba32 = cellColorGetter(cell);
+                    // var cell_color = Color.Blue;
+                    var cell_color = new Color(rgba32);
+                    // 先填充格子，然后填充格子 左边 和 上边 的线，保证线能够画在格子上面
+                    // 因为格子的遍历顺序就是 从左往右 从上往下，之后这个格子上面的线和左边的 线都不会再次被格子本身覆盖掉
+                    ctx.Fill(cell_color, new RectangleF(lt, inner_cell_size));
+                    
+                    var i = GetInsetCoordinate(x, y);
+                    if (cell.HasLinkUp)
+                    {
+                        ctx.Fill(cell_color, new RectangleF(i.x1, i.y0, innerCellWidth, inset));
+                    }
+                    if (cell.HasLinkDown)
+                    {
+                        ctx.Fill(cell_color, new RectangleF(i.x1, i.y2, innerCellWidth, inset));
+                    }
+                    if (cell.HasLinkLeft)
+                    {
+                        ctx.Fill(cell_color, new RectangleF(i.x0, i.y1, inset, innerCellHeight));
+                    }
+                    if (cell.HasLinkRight)
+                    {
+                        ctx.Fill(cell_color, new RectangleF(i.x2, i.y1, inset, innerCellHeight));
+                    }
+                }
+            }
+
+            InsetCellPoints GetInsetCoordinate(int x, int y)
+            {
+                var i = new InsetCellPoints();
+                
+                i.x0 = x * cellWidth;
+                i.x3 = (x + 1) * cellWidth;
+                i.x1 = i.x0 + inset;
+                i.x2 = i.x3 - inset;
+                
+                i.y0 = y * cellHeight;
+                i.y3 = (y + 1) * cellHeight;
+                i.y1 = i.y0 + inset;
+                i.y2 = i.y3 - inset;
+                
+                return i;
+            }
+
+            void DrawLine(int x0, int y0, int x1, int y1) =>
+                ctx.DrawLines(line_color, line_thickness, new PointF(x0, y0), new PointF(x1, y1));
+
+            void DrawAllCellsLines()
+            {
+                for (var y = 0; y < Height; y++)
+                for (var x = 0; x < Width; x++)
+                {
+                    var cell = Cells[y, x];
+                    if (cell is null) continue;
+
+                    var i = GetInsetCoordinate(x, y);
+
+                    if (cell.HasLinkUp)
+                    {
+                        DrawLine(i.x1, i.y1, i.x1, i.y0);
+                        DrawLine(i.x2, i.y1, i.x2, i.y0);
+                    }
+                    else
+                    {
+                        DrawLine(i.x1, i.y1, i.x2, i.y1);
+                    }
+
+                    if (cell.HasLinkDown)
+                    {
+                        DrawLine(i.x1, i.y2, i.x1, i.y3);
+                        DrawLine(i.x2, i.y2, i.x2, i.y3);
+                    }
+                    else
+                    {
+                        DrawLine(i.x1, i.y2, i.x2, i.y2);
+                    }
+                    
+                    if (cell.HasLinkLeft)
+                    {
+                        DrawLine(i.x0, i.y1, i.x1, i.y1);
+                        DrawLine(i.x0, i.y2, i.x1, i.y2);
+                    }
+                    else
+                    {
+                        DrawLine(i.x1, i.y1, i.x1, i.y2);
+                    }
+                    
+                    if (cell.HasLinkRight)
+                    {
+                        DrawLine(i.x3, i.y1, i.x2, i.y1);
+                        DrawLine(i.x3, i.y2, i.x2, i.y2);
+                    }
+                    else
+                    {
+                        DrawLine(i.x2, i.y1, i.x2, i.y2);
+                    }
+                }
+            }
+
+            FillCellsColor();
+            DrawAllCellsLines();
+        });
+        return image;
     }
 
     public void RemoveCell(GridCell cell)
@@ -228,7 +369,7 @@ public class Grid : IMazeMap<GridCell>
         if (cell.Right != null) cell.Right.Left = null;
         if (cell.Up != null) cell.Up.Down = null;
         if (cell.Down != null) cell.Down.Up = null;
-        
+
         foreach (var grid_cell in cell.GetLinks())
         {
             cell.UnLink(grid_cell, true);

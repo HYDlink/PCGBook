@@ -49,14 +49,17 @@ void DeadEndProgram()
 
 void DeadEndRemovalProgram()
 {
-    var (width, height) = (64, 64);
+    var (width, height) = (32, 32);
     var grid = new Grid(width, height);
-    
-    BackTrackLink(grid);
-    grid.RemoveDeadEndPath(0.1f);
+
+    AldousBroderLink(grid);
+    grid.RemoveDeadEndPath(0.5f);
     // var map = DeadEndMap.GetDeadEndMap(grid);
-    // grid.DrawImage(map.GetCellColorGetter()).SaveImage("Maze");
-    grid.DrawImage().SaveImage("Maze");
+    // grid.DrawImageWithInset(map.GetCellColorGetter()).SaveImage("Maze");
+    
+    var distance_value = new DistanceMap<GridCell>(grid, grid.GetAllCells().RandomItem(new Random()));
+    grid.DrawImageWithInset().SaveImage("Maze");
+    grid.DrawImageWithInset(distance_value.GetCellColorByDistanceValue()).SaveImage("Maze");
 }
 
 void RecordGif<TCell>(IMazeMap<TCell> grid) where TCell : CellBase
@@ -75,16 +78,19 @@ void RecordGif<TCell>(IMazeMap<TCell> grid) where TCell : CellBase
 
 void TestGridAndDistanceMap()
 {
-    var (width, height) = (64, 64);
+    var (width, height) = (32, 32);
     var grid = new Grid(width, height);
+    // grid.DrawImageWithInset().SaveImage("Maze");
+    // return;
     
-    BackTrackLink(grid);
-    grid.RemoveDeadEnd(0.5f);
+    AldousBroderLink(grid);
+    // grid.RemoveDeadEnd(0.5f);
 
-    var distance_value = DistanceMap.GetDistanceMap(grid, 1, 1);
+    var distance_value = new DistanceMap<GridCell>(grid, grid.Cells[1, 1]);
     var path_value = distance_value.GetPathMap(grid.Cells[width - 1, height - 1]);
-    grid.DrawImage(distance_value.GetCellColorByDistanceValue()).SaveImage("DistanceInGridMaze");
-    grid.DrawImage(path_value.GetCellColorByDistanceValue(true)).SaveImage("ShortestPathInGridMaze");
+    grid.DrawImageWithInset().SaveImage("GridMaze");
+    grid.DrawImageWithInset(distance_value.GetCellColorByDistanceValue()).SaveImage("DistanceInGridMaze");
+    grid.DrawImageWithInset(path_value.GetCellColorByDistanceValue(true)).SaveImage("ShortestPathInGridMaze");
 }
 
 void TestCircle()
@@ -92,9 +98,13 @@ void TestCircle()
     var circle = new Circle(6, 4);
     BackTrackLink(circle);
     circle.DrawImage().SaveImage("CircleMaze");
+    var distance_value = new DistanceMap<CircleCell>(circle, circle.GetCell(1, 1));
+    var path_value = distance_value.GetPathMap(circle.GetCell(3, 1));
+    circle.DrawImage(distance_value.GetCellColorByDistanceValue()).SaveImage("DistanceInCircleMaze");
+    circle.DrawImage(path_value.GetCellColorByDistanceValue(true)).SaveImage("ShortestPathInCircleMaze");
 }
 
 // TestGridAndDistanceMap();
-TestCircle();
+// TestCircle();
 // DeadEndProgram();
-// DeadEndRemovalProgram();
+DeadEndRemovalProgram();

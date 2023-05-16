@@ -15,6 +15,8 @@ public class Circle : IMazeMap<CircleCell>
 
     private CircleCell?[][] Cells { get; set; }
 
+    public CircleCell? GetCell(int ringIndex, int polarIndex) => Cells[ringIndex]?[polarIndex];
+
     /// <summary>
     /// 创建带有 Subdivision 的圆环迷宫
     /// </summary>
