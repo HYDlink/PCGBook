@@ -219,4 +219,19 @@ public class Grid : IMazeMap<GridCell>
         // Utilities.SaveImage(image, "Maze");
         // image.Dispose();
     }
+
+    public void RemoveCell(GridCell cell)
+    {
+        Debug.Assert(Cells[cell.Y, cell.X] == cell);
+        Cells[cell.Y, cell.X] = null;
+        if (cell.Left != null) cell.Left.Right = null;
+        if (cell.Right != null) cell.Right.Left = null;
+        if (cell.Up != null) cell.Up.Down = null;
+        if (cell.Down != null) cell.Down.Up = null;
+        
+        foreach (var grid_cell in cell.GetLinks())
+        {
+            cell.UnLink(grid_cell, true);
+        }
+    }
 }

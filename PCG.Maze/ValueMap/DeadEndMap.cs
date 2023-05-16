@@ -14,7 +14,7 @@ public record DeadEndMap(int Width, int Height) : Map2D(Width, Height)
         var width = grid.Width;
         var map = new DeadEndMap(width, height) { Grid = grid };
 
-        var dead_ends = map.DeadEnds = grid.Cells.Cast<GridCell>().Where(c => c.IsDeadEnd).ToList();
+        var dead_ends = map.DeadEnds = grid.GetDeadEnds().ToList();
         foreach (var dead_end in dead_ends)
         {
             map[dead_end] = DeadEndValue;
@@ -22,13 +22,9 @@ public record DeadEndMap(int Width, int Height) : Map2D(Width, Height)
 
         foreach (var dead_end in dead_ends)
         {
-            var cur_cell = dead_end.GetLinks().First();
-            // const int splitCell = 3;
-            const int corridorCell = 2;
-            while (cur_cell.GetLinks().Count() == corridorCell)
+            foreach (var corridor in dead_end.GetDeadEndCorridor())
             {
-                map[cur_cell] = corridorCell;
-                cur_cell = cur_cell.GetLinks().First(link => link != cur_cell);
+                map[corridor] = DeadEndCorridorValue;
             }
         }
 

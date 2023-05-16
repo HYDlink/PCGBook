@@ -14,7 +14,11 @@ public class MazeGenerator
         this.grid = grid;
     }
 
-    public void BinaryTreeLink(Action<Grid>? onStepFinish = null)
+    public delegate void Generator<TCell>(IMazeMap<TCell> map, Action<IMazeMap<TCell>> onStepFinish)
+        where TCell : CellBase;
+    
+
+    public static void BinaryTreeLink(Grid grid, Action<Grid>? onStepFinish = null)
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
         var peek_right_percent = 0.6f;
@@ -44,7 +48,7 @@ public class MazeGenerator
         }
     }
 
-    public void SidewinderLink(Action<Grid>? onStepFinish = null)
+    public static void SidewinderLink(Grid grid, Action<Grid>? onStepFinish = null)
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
         var peek_right_percent = 0.6f;
@@ -86,7 +90,8 @@ public class MazeGenerator
     ///     如果这个邻居没有被访问，那么和这个邻居连接起来，否则什么都不做<br/>
     ///     从这个新邻居开始，继续随机访问它的邻居
     /// </summary>
-    public void AldousBroderLink(Action<Grid>? onStepFinish = null)
+    public static void AldousBroderLink<TCell>(IMazeMap<TCell> grid, Action<IMazeMap<TCell>>? onStepFinish = null)
+        where TCell: CellBase
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
 
@@ -116,7 +121,8 @@ public class MazeGenerator
     /// 游走的过程中如果形成了环，那就消除这个环路径；
     /// 如此循环，直到所有点都被访问过
     /// </summary>
-    public void WilsonLink(Action<Grid>? onStepFinish = null)
+    public static void WilsonLink<TCell>(IMazeMap<TCell> grid, Action<IMazeMap<TCell>>? onStepFinish = null)
+        where TCell: CellBase
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
 
@@ -128,7 +134,7 @@ public class MazeGenerator
         while (unvisited.Any())
         {
             var last = unvisited.Last();
-            var path = new List<GridCell> { last };
+            var path = new List<TCell> { last };
             while (true)
             {
                 var neighbor = GetRandomNeighbor(last, random);
@@ -148,13 +154,13 @@ public class MazeGenerator
                 last = neighbor;
             }
 
+            // 路径上的最后一点就是已经北方问过的，所以不用特地移除
             for (int i = 0; i < path.Count - 1; i++)
             {
                 path[i].Link(path[i + 1], true);
                 unvisited.Remove(path[i]);
             }
 
-            unvisited.Remove(path.Last());
             onStepFinish?.Invoke(grid);
         }
     }
@@ -164,14 +170,15 @@ public class MazeGenerator
     /// 在已经访问过的 Cell 中，随机选取它们其中一个没有链接上的邻居，继续上面的步骤，直到所有 Cell 被访问过
     /// </summary>
     /// <param name="onStepFinish"></param>
-    public void HuntAndKillLink(Action<Grid>? onStepFinish = null)
+    public static void HuntAndKillLink<TCell>(IMazeMap<TCell> grid, Action<IMazeMap<TCell>>? onStepFinish = null)
+        where TCell: CellBase
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
         var unvisited = grid.GetAllCells().ToList();
-        var visited = new List<GridCell>();
+        var visited = new List<CellBase>();
         Shuffle(unvisited, random);
 
-        void Hunt(GridCell cell)
+        void Hunt(TCell cell)
         {
             var cur = cell;
             while (unvisited.Contains(cur))
@@ -191,23 +198,24 @@ public class MazeGenerator
         while (unvisited.Any())
         {
             var hunt = visited.SelectMany(v => v.GetNeighbors().Where(unvisited.Contains))
-                .ToArray().RandomItem(random);
+                .ToArray().OfType<TCell>().RandomItem(random);
             var neighbor = hunt.GetNeighbors().First(visited.Contains);
             hunt.Link(neighbor);
             Hunt(hunt);
         }
     }
 
-    public void BackTrackLink(Action<Grid>? onStepFinish = null)
+    public static void BackTrackLink<TCell>(IMazeMap<TCell> grid, Action<IMazeMap<TCell>>? onStepFinish = null)
+        where TCell: CellBase
     {
         var random = Utilities.CreateRandomWithPrintedSeed();
 
         var unvisited = grid.GetAllCells().ToList();
 
-        void DFS(GridCell cell)
+        void DFS(TCell cell)
         {
             unvisited.Remove(cell);
-            var neighbors = cell.GetNeighbors().ToList();
+            var neighbors = cell.GetNeighbors().OfType<TCell>().ToList();
             Shuffle(neighbors, random);
             foreach (var neighbor in neighbors)
             {
@@ -222,6 +230,7 @@ public class MazeGenerator
         while (unvisited.Any())
             DFS(unvisited.First());
     }
+    
 
     public static void Shuffle<T>(IList<T> list, Random rng)
     {
@@ -234,8 +243,8 @@ public class MazeGenerator
         }
     }
 
-    public static GridCell GetRandomNeighbor(GridCell cell, Random random)
+    public static TCell GetRandomNeighbor<TCell>(TCell cell, Random random) where TCell: CellBase
     {
-        return cell.GetNeighbors().ToArray().RandomItem(random);
+        return cell.GetNeighbors().OfType<TCell>().ToArray().RandomItem(random);
     }
 }

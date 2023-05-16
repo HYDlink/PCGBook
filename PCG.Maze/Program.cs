@@ -3,8 +3,10 @@
 using PCG.Common;
 using PCG.Maze;
 using PCG.Maze.MazeShape;
+using PCG.Maze.Modifier;
 using PCG.Maze.ValueMap;
 using static PCG.Maze.MazeShape.MaskGrid;
+using static PCG.Maze.MazeGenerator;
 
 void MaskProgram()
 {
@@ -29,7 +31,7 @@ X........X");
     {
         var grid = new Grid(maskGrid);
 // mg.DrawImage().SaveImage("MaskedMaze");
-        new MazeGenerator(grid).BackTrackLink();
+        BackTrackLink(grid);
         grid.DrawImage().SaveImage("MaskedMaze");
         // var distance_value = DistanceMap.GetDistanceMap(grid, grid.GetAllCells().First());
         // grid.DrawImage(distance_value.GetCellColorByDistanceValue()).SaveImage("MaskedMaze");
@@ -39,20 +41,30 @@ X........X");
 void DeadEndProgram()
 {
     var grid = new Grid(8, 8);
-    var generator = new MazeGenerator(grid);
-
     // RecordGif(generator);
-    generator.BackTrackLink();
+    BackTrackLink(grid);
     var map = DeadEndMap.GetDeadEndMap(grid);
+    grid.DrawImage(map.GetCellColorGetter()).SaveImage("Maze");
+}
+
+void DeadEndRemovalProgram()
+{
+    var (width, height) = (64, 64);
+    var grid = new Grid(width, height);
+    
+    BackTrackLink(grid);
+    grid.RemoveDeadEndPath(0.1f);
+    // var map = DeadEndMap.GetDeadEndMap(grid);
+    // grid.DrawImage(map.GetCellColorGetter()).SaveImage("Maze");
     grid.DrawImage().SaveImage("Maze");
 }
 
-void RecordGif(MazeGenerator generator)
+void RecordGif<TCell>(IMazeMap<TCell> grid) where TCell : CellBase
 {
     var images = new List<Image<Rgba32>>();
-    generator.BackTrackLink(StepDrawImage);
+    BackTrackLink(grid, StepDrawImage);
 
-    void StepDrawImage(Grid grid)
+    void StepDrawImage(IMazeMap<TCell> grid)
     {
         var draw_image = grid.DrawImage();
         images.Add(draw_image);
@@ -61,37 +73,28 @@ void RecordGif(MazeGenerator generator)
     images.EncodeGif();
 }
 
-var circle = new Circle(6, 20);
-
-void BackTrackLink(Circle maze, Action<Grid>? onStepFinish = null)
+void TestGridAndDistanceMap()
 {
-    var random = Utilities.CreateRandomWithPrintedSeed();
+    var (width, height) = (64, 64);
+    var grid = new Grid(width, height);
+    
+    BackTrackLink(grid);
+    grid.RemoveDeadEnd(0.5f);
 
-    var unvisited = maze.GetAllCells().ToList();
-
-    void DFS(CircleCell cell)
-    {
-        unvisited.Remove(cell);
-        var neighbors = cell.GetNeighbors().ToList();
-        Utilities.Shuffle(neighbors, random);
-        foreach (var neighbor in neighbors)
-        {
-            if (unvisited.Contains(neighbor))
-            {
-                cell.Link(neighbor, true);
-                DFS(neighbor);
-            }
-        }
-    }
-
-    while (unvisited.Any())
-        DFS(unvisited.First());
+    var distance_value = DistanceMap.GetDistanceMap(grid, 1, 1);
+    var path_value = distance_value.GetPathMap(grid.Cells[width - 1, height - 1]);
+    grid.DrawImage(distance_value.GetCellColorByDistanceValue()).SaveImage("DistanceInGridMaze");
+    grid.DrawImage(path_value.GetCellColorByDistanceValue(true)).SaveImage("ShortestPathInGridMaze");
 }
 
-// BackTrackLink(circle);
-circle.DrawImage().SaveImage("CircleMaze");
+void TestCircle()
+{
+    var circle = new Circle(6, 4);
+    BackTrackLink(circle);
+    circle.DrawImage().SaveImage("CircleMaze");
+}
 
-
-// grid.Print();
-// var distance_value = DistanceMap.GetDistanceMap(grid, 16, 16);
-// grid.DrawImage(distance_value.GetCellColorByDistanceValue()).SaveImage("Maze");
+// TestGridAndDistanceMap();
+TestCircle();
+// DeadEndProgram();
+// DeadEndRemovalProgram();
