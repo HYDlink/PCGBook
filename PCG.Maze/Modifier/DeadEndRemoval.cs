@@ -26,12 +26,10 @@ public static class DeadEndRemoval
         int randSeed = -1) where TCell : CellBase
     {
         var random = Utilities.CreateRandomWithPrintedSeed(randSeed);
-        foreach (var dead_end in mazeMap.GetDeadEnds())
-        {
-            if (random.NextSingle() > deadEndPercent) continue;
-            dead_end.GetDeadEndCorridor()
-                .ToList().ForEach(mazeMap.RemoveCell);
-            mazeMap.RemoveCell(dead_end);
-        }
+        // RemoveCell 以后，迷宫又会出现新的死角，新的死角路线，所以应当拿到所有应当移除的 Cell，最后一并移除
+        var deadEndPaths = mazeMap.GetDeadEnds().Where(_ => random.NextSingle() <= deadEndPercent)
+            .SelectMany(deadEnd => deadEnd.GetDeadEndCorridor().Append(deadEnd))
+            .ToList();
+        deadEndPaths.ForEach(mazeMap.RemoveCell);
     }
 }

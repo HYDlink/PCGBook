@@ -84,10 +84,13 @@ void TestGridAndDistanceMap()
     // return;
     
     AldousBroderLink(grid);
-    // grid.RemoveDeadEnd(0.5f);
+    grid.RemoveDeadEndPath(0.5f);
 
-    var distance_value = new DistanceMap<GridCell>(grid, grid.Cells[1, 1]);
-    var path_value = distance_value.GetPathMap(grid.Cells[width - 1, height - 1]);
+    var rand = Utilities.CreateRandomWithPrintedSeed();
+    var startCell = grid.GetAllCells().RandomItem(rand);
+    var endCell = grid.GetAllCells().RandomItem(rand);
+    var distance_value = new DistanceMap<GridCell>(grid, startCell);
+    var path_value = distance_value.GetPathMap(endCell);
     grid.DrawImageWithInset().SaveImage("GridMaze");
     grid.DrawImageWithInset(distance_value.GetCellColorByDistanceValue()).SaveImage("DistanceInGridMaze");
     grid.DrawImageWithInset(path_value.GetCellColorByDistanceValue(true)).SaveImage("ShortestPathInGridMaze");
@@ -104,7 +107,7 @@ void TestCircle()
     circle.DrawImage(path_value.GetCellColorByDistanceValue(true)).SaveImage("ShortestPathInCircleMaze");
 }
 
-// TestGridAndDistanceMap();
+TestGridAndDistanceMap();
 // TestCircle();
 // DeadEndProgram();
-DeadEndRemovalProgram();
+// DeadEndRemovalProgram();
