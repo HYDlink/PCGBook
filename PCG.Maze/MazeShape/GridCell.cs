@@ -36,4 +36,6 @@ public record GridCell(int X, int Y): CellBase
     {
         return HashCode.Combine(X, Y);
     }
+
+    public override string ToString() => $"({X}, {Y})";
 }

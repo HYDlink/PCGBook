@@ -62,10 +62,10 @@ void DeadEndRemovalProgram()
     grid.DrawImageWithInset(distance_value.GetCellColorByDistanceValue()).SaveImage("Maze");
 }
 
-void RecordGif<TCell>(IMazeMap<TCell> grid) where TCell : CellBase
+void RecordGif<TCell>(IMazeMap<TCell> grid, Generator<TCell> generator) where TCell : CellBase
 {
     var images = new List<Image<Rgba32>>();
-    BackTrackLink(grid, StepDrawImage);
+    generator(grid, StepDrawImage);
 
     void StepDrawImage(IMazeMap<TCell> grid)
     {
@@ -73,7 +73,7 @@ void RecordGif<TCell>(IMazeMap<TCell> grid) where TCell : CellBase
         images.Add(draw_image);
     }
 
-    images.EncodeGif();
+    images.EncodeGif(100);
 }
 
 void TestGridAndDistanceMap()
@@ -83,8 +83,10 @@ void TestGridAndDistanceMap()
     // grid.DrawImageWithInset().SaveImage("Maze");
     // return;
     
-    AldousBroderLink(grid);
-    grid.RemoveDeadEndPath(0.5f);
+    KruskalLink(grid);
+    // RecordGif(grid, KruskalLink);
+    // return;
+    // grid.RemoveDeadEndPath(0.5f);
 
     var rand = Utilities.CreateRandomWithPrintedSeed();
     var startCell = grid.GetAllCells().RandomItem(rand);

@@ -5,7 +5,7 @@ using PCG.Maze.MazeShape;
 
 namespace PCG.Maze;
 
-public class MazeGenerator
+public partial class MazeGenerator
 {
     private Grid grid;
 
@@ -230,7 +230,6 @@ public class MazeGenerator
         while (unvisited.Any())
             DFS(unvisited.First());
     }
-    
 
     public static void Shuffle<T>(IList<T> list, Random rng)
     {

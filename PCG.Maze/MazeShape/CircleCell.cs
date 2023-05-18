@@ -45,4 +45,7 @@ public record CircleCell(int PolarIndex, int RingIndex): CellBase
 
     public override int GetHashCode()
         => HashCode.Combine(PolarIndex, RingIndex);
+
+    public override string ToString()
+        => $"({PolarIndex}, {RingIndex})";
 }
