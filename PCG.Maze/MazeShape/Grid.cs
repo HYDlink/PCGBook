@@ -11,7 +11,7 @@ public class Grid : IMazeMap<GridCell>
 
     public GridCell?[,] Cells { get; set; }
 
-    public IEnumerable<GridCell> GetAllCells() => Cells.OfType<GridCell>().ToList();
+    public virtual IEnumerable<GridCell> GetAllCells() => Cells.OfType<GridCell>().ToList();
 
     public Grid(int width, int height)
     {
@@ -20,10 +20,7 @@ public class Grid : IMazeMap<GridCell>
 
         Debug.Assert(Width >= 2 && Height >= 2);
 
-        Cells = new GridCell[Height, Width];
-        for (var y = 0; y < Height; y++)
-        for (var x = 0; x < Width; x++)
-            Cells[y, x] = new GridCell(x, y);
+        InitCells();
 
         // 设置 Cell 的邻居方向
         SetAllCellsNeighbor();
@@ -46,7 +43,17 @@ public class Grid : IMazeMap<GridCell>
         SetAllCellsNeighbor();
     }
 
-    private void SetAllCellsNeighbor()
+    protected virtual void InitCells()
+    {
+        Cells = new GridCell[Height, Width];
+        for (var y = 0; y < Height; y++)
+        for (var x = 0; x < Width; x++)
+            Cells[y, x] = InitCell(x, y);
+    }
+
+    public virtual GridCell InitCell(int x, int y) => new GridCell(x, y);
+
+    protected virtual void SetAllCellsNeighbor()
     {
         for (var y = 0; y < Height; y++)
         for (var x = 0; x < Width; x++)
@@ -114,20 +121,36 @@ public class Grid : IMazeMap<GridCell>
         Console.WriteLine(sb.ToString());
     }
 
-    public Image<Rgba32> DrawImage(Func<GridCell, Rgba32>? cellColorGetter = null)
+    protected const int CellWidth = 16;
+    protected const int CellHeight = 16;
+    protected const int Inset = 2;
+    protected const int InnerCellWidth = CellWidth - 2 * Inset;
+    protected const int InnerCellHeight = CellHeight - 2 * Inset;
+    protected static SizeF cellSize = new(CellWidth, CellHeight);
+    protected static SizeF innerCellSize = new(InnerCellWidth, InnerCellHeight);
+    protected readonly Color lineColor = Color.Black;
+    protected readonly Color baseColor = Color.White;
+    protected readonly int lineThickness = 1;
+
+
+    protected (PointF lt, PointF lb, PointF rb, PointF rt) GetCellPoints(int x, int y)
+    {
+        var lt = new PointF(x * CellWidth, y * CellHeight);
+        var lb = new PointF(x * CellWidth, (y + 1) * CellHeight);
+        var rb = new PointF((x + 1) * CellWidth, (y + 1) * CellHeight);
+        var rt = new PointF((x + 1) * CellWidth, y * CellHeight);
+        return (lt, lb, rb, rt);
+    }
+
+    public virtual Image<Rgba32> DrawImage(Func<GridCell, Rgba32>? cellColorGetter = null)
     {
         Rgba32 DefaultCellColorGetter(GridCell cell) =>
             new Rgba32((float)(cell.X + 1) / Width, (float)(cell.Y + 1) / Height, 0f, 1f);
 
         // cellColorGetter ??= DefaultCellColorGetter;
 
-        const int cellWidth = 16;
-        const int cellHeight = 16;
-        var line_thickness = 2;
-        
-        var cell_size = new SizeF(cellWidth, cellHeight);
-        var image_width = Width * cellWidth;
-        var image_height = Height * cellHeight;
+        var image_width = Width * CellWidth;
+        var image_height = Height * CellHeight;
         var image = new Image<Rgba32>(image_width, image_height);
         image.Mutate(ctx =>
         {
@@ -145,23 +168,14 @@ public class Grid : IMazeMap<GridCell>
                 {
                     var cell = Cells[y, x];
                     if (cell is null) continue;
-                    var lt = new PointF(x * cellWidth, y * cellHeight);
+                    var lt = new PointF(x * CellWidth, y * CellHeight);
                     var rgba32 = cellColorGetter(cell);
                     // var cell_color = Color.Blue;
                     var cell_color = new Color(rgba32);
                     // 先填充格子，然后填充格子 左边 和 上边 的线，保证线能够画在格子上面
                     // 因为格子的遍历顺序就是 从左往右 从上往下，之后这个格子上面的线和左边的 线都不会再次被格子本身覆盖掉
-                    ctx.Fill(cell_color, new RectangleF(lt, cell_size));
+                    ctx.Fill(cell_color, new RectangleF(lt, cellSize));
                 }
-            }
-
-            (PointF lt, PointF lb, PointF rb, PointF rt) GetCellPoints(int x, int y)
-            {
-                var lt = new PointF(x * cellWidth, y * cellHeight);
-                var lb = new PointF(x * cellWidth, (y + 1) * cellHeight);
-                var rb = new PointF((x + 1) * cellWidth, (y + 1) * cellHeight);
-                var rt = new PointF((x + 1) * cellWidth, y * cellHeight);
-                return (lt, lb, rb, rt);
             }
 
             void DrawAllCellsLines()
@@ -175,13 +189,13 @@ public class Grid : IMazeMap<GridCell>
                     var (lt, lb, rb, rt) = GetCellPoints(x, y);
 
                     if (!cell.HasLinkUp)
-                        ctx.DrawLines(line_color, line_thickness, lt, rt);
+                        ctx.DrawLines(line_color, lineThickness, lt, rt);
                     if (!cell.HasLinkLeft)
-                        ctx.DrawLines(line_color, line_thickness, lt, lb);
+                        ctx.DrawLines(line_color, lineThickness, lt, lb);
                     if (!cell.HasLinkDown)
-                        ctx.DrawLines(line_color, line_thickness, lb, rb);
+                        ctx.DrawLines(line_color, lineThickness, lb, rb);
                     if (!cell.HasLinkRight)
-                        ctx.DrawLines(line_color, line_thickness, rt, rb);
+                        ctx.DrawLines(line_color, lineThickness, rt, rb);
                 }
             }
 
@@ -197,16 +211,16 @@ public class Grid : IMazeMap<GridCell>
                     var (lt, lb, rb, rt) = GetCellPoints(x, y);
 
                     if (!cell.HasLinkUp)
-                        ctx.DrawLines(line_color, line_thickness, lt, rt);
+                        ctx.DrawLines(line_color, lineThickness, lt, rt);
                     if (!cell.HasLinkLeft)
-                        ctx.DrawLines(line_color, line_thickness, lt, lb);
+                        ctx.DrawLines(line_color, lineThickness, lt, lb);
                 }
 
                 // Draw Right Line
-                ctx.DrawLines(line_color, line_thickness, new PointF(image_width, 0),
+                ctx.DrawLines(line_color, lineThickness, new PointF(image_width, 0),
                     new PointF(image_width, image_height));
                 // Draw Bottom Line
-                ctx.DrawLines(line_color, line_thickness, new PointF(0, image_height),
+                ctx.DrawLines(line_color, lineThickness, new PointF(0, image_height),
                     new PointF(image_width, image_height));
             }
 
@@ -218,35 +232,35 @@ public class Grid : IMazeMap<GridCell>
         return image;
     }
 
-    private struct InsetCellPoints
+    protected struct InsetCellPoints
     {
         public int x0, x1, x2, x3;
         public int y0, y1, y2, y3;
     }
 
-    public Image<Rgba32> DrawImageWithInset(Func<GridCell, Rgba32>? cellColorGetter = null)
+
+    protected InsetCellPoints GetInsetCoordinate(int x, int y)
     {
-        const int cellWidth = 16;
-        const int cellHeight = 16;
-        const int inset = 2;
-        const int innerCellWidth = cellWidth - 2 * inset;
-        const int innerCellHeight = cellHeight - 2 * inset;
-        
-        var line_thickness = 1;
-        
-        var inner_cell_size = new SizeF(innerCellWidth, innerCellHeight);
-        var image_width = Width * cellWidth;
-        var image_height = Height * cellHeight;
-        var image = new Image<Rgba32>(image_width, image_height);
-        
+        var i = new InsetCellPoints();
+
+        i.x0 = x * CellWidth;
+        i.x3 = (x + 1) * CellWidth;
+        i.x1 = i.x0 + Inset;
+        i.x2 = i.x3 - Inset;
+
+        i.y0 = y * CellHeight;
+        i.y3 = (y + 1) * CellHeight;
+        i.y1 = i.y0 + Inset;
+        i.y2 = i.y3 - Inset;
+
+        return i;
+    }
+
+    public virtual void DrawImageWithInset(Image<Rgba32> image, Func<GridCell, Rgba32>? cellColorGetter = null)
+    {
         image.Mutate(ctx =>
+
         {
-            // 先填充底色
-            var base_color = Color.White;
-            ctx.Fill(base_color, new RectangleF(0, 0, image_width, image_height));
-
-            var line_color = Color.Black;
-
             void FillCellsColor()
             {
                 if (cellColorGetter is null) return;
@@ -255,53 +269,39 @@ public class Grid : IMazeMap<GridCell>
                 {
                     var cell = Cells[y, x];
                     if (cell is null) continue;
-                    var lt = new PointF(x * cellWidth + inset, y * cellHeight + inset);
+                    var lt = new PointF(x * CellWidth + Inset, y * CellHeight + Inset);
                     var rgba32 = cellColorGetter(cell);
                     // var cell_color = Color.Blue;
                     var cell_color = new Color(rgba32);
                     // 先填充格子，然后填充格子 左边 和 上边 的线，保证线能够画在格子上面
                     // 因为格子的遍历顺序就是 从左往右 从上往下，之后这个格子上面的线和左边的 线都不会再次被格子本身覆盖掉
-                    ctx.Fill(cell_color, new RectangleF(lt, inner_cell_size));
-                    
+                    ctx.Fill(cell_color, new RectangleF(lt, innerCellSize));
+
                     var i = GetInsetCoordinate(x, y);
                     if (cell.HasLinkUp)
                     {
-                        ctx.Fill(cell_color, new RectangleF(i.x1, i.y0, innerCellWidth, inset));
+                        ctx.Fill(cell_color, new RectangleF(i.x1, i.y0, InnerCellWidth, Inset));
                     }
+
                     if (cell.HasLinkDown)
                     {
-                        ctx.Fill(cell_color, new RectangleF(i.x1, i.y2, innerCellWidth, inset));
+                        ctx.Fill(cell_color, new RectangleF(i.x1, i.y2, InnerCellWidth, Inset));
                     }
+
                     if (cell.HasLinkLeft)
                     {
-                        ctx.Fill(cell_color, new RectangleF(i.x0, i.y1, inset, innerCellHeight));
+                        ctx.Fill(cell_color, new RectangleF(i.x0, i.y1, Inset, InnerCellHeight));
                     }
+
                     if (cell.HasLinkRight)
                     {
-                        ctx.Fill(cell_color, new RectangleF(i.x2, i.y1, inset, innerCellHeight));
+                        ctx.Fill(cell_color, new RectangleF(i.x2, i.y1, Inset, InnerCellHeight));
                     }
                 }
             }
 
-            InsetCellPoints GetInsetCoordinate(int x, int y)
-            {
-                var i = new InsetCellPoints();
-                
-                i.x0 = x * cellWidth;
-                i.x3 = (x + 1) * cellWidth;
-                i.x1 = i.x0 + inset;
-                i.x2 = i.x3 - inset;
-                
-                i.y0 = y * cellHeight;
-                i.y3 = (y + 1) * cellHeight;
-                i.y1 = i.y0 + inset;
-                i.y2 = i.y3 - inset;
-                
-                return i;
-            }
-
             void DrawLine(int x0, int y0, int x1, int y1) =>
-                ctx.DrawLines(line_color, line_thickness, new PointF(x0, y0), new PointF(x1, y1));
+                ctx.DrawLines(lineColor, lineThickness, new PointF(x0, y0), new PointF(x1, y1));
 
             void DrawAllCellsLines()
             {
@@ -332,7 +332,7 @@ public class Grid : IMazeMap<GridCell>
                     {
                         DrawLine(i.x1, i.y2, i.x2, i.y2);
                     }
-                    
+
                     if (cell.HasLinkLeft)
                     {
                         DrawLine(i.x0, i.y1, i.x1, i.y1);
@@ -342,7 +342,7 @@ public class Grid : IMazeMap<GridCell>
                     {
                         DrawLine(i.x1, i.y1, i.x1, i.y2);
                     }
-                    
+
                     if (cell.HasLinkRight)
                     {
                         DrawLine(i.x3, i.y1, i.x2, i.y1);
@@ -358,6 +358,25 @@ public class Grid : IMazeMap<GridCell>
             FillCellsColor();
             DrawAllCellsLines();
         });
+    }
+
+    public virtual Image<Rgba32> DrawImageWithInset(Func<GridCell, Rgba32>? cellColorGetter = null)
+    {
+        var image = InitImageToDraw();
+
+        DrawImageWithInset(image);
+
+        return image;
+    }
+
+    protected Image<Rgba32> InitImageToDraw()
+    {
+        var image_width = Width * CellWidth;
+        var image_height = Height * CellHeight;
+        var image = new Image<Rgba32>(image_width, image_height);
+        // 先填充底色
+        image.Mutate(ctx =>
+            ctx.Fill(baseColor, new RectangleF(0, 0, image.Width, image.Height)));
         return image;
     }
 

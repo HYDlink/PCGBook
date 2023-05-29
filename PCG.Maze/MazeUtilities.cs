@@ -20,7 +20,7 @@ public static class MazeUtilities
         where TCell : CellBase
     {
         Debug.Assert(deadEnd.GetLinks().Count() == 1, "deadEnd is true Dead End");
-        
+
         var cur_cell = deadEnd.GetLinks().First();
         const int corridorLinkCount = 2;
         while (cur_cell.GetLinks().Count() == corridorLinkCount)
@@ -30,4 +30,11 @@ public static class MazeUtilities
         }
     }
 
+    public static void ConnectAllCells<TCell> (this IMazeMap<TCell> grid)
+        where TCell : CellBase
+    {
+        foreach (var cell in grid.GetAllCells())
+        foreach (var neighbor in cell.GetNeighbors())
+            cell.Link(neighbor, false);
+    }
 }

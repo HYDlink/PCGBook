@@ -16,7 +16,9 @@ public record GridCell(int X, int Y): CellBase
     public bool HasLinkUp => HasUp && Links.Contains(Up);
     public bool HasLinkDown => HasDown && Links.Contains(Down);
 
-    public override IEnumerable<GridCell> GetNeighbors()
+    public override IEnumerable<GridCell> GetNeighbors() => GetNeighborsOnGridCell();
+    
+    public IEnumerable<GridCell> GetNeighborsOnGridCell()
     {
 #pragma warning disable CS8603
         if (HasLeft)
@@ -32,10 +34,7 @@ public record GridCell(int X, int Y): CellBase
 
     public override IEnumerable<GridCell> GetLinks() => Links.OfType<GridCell>();
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(X, Y);
-    }
+    public override int GetHashCode() => HashCode.Combine(X, Y);
 
     public override string ToString() => $"({X}, {Y})";
 }

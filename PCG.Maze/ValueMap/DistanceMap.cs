@@ -1,4 +1,6 @@
 ﻿using PCG.Maze.MazeShape;
+using SixLabors.ImageSharp.ColorSpaces;
+using SixLabors.ImageSharp.ColorSpaces.Conversion;
 
 namespace PCG.Maze.ValueMap;
 
@@ -83,7 +85,7 @@ public class DistanceMap<TCell> where TCell : CellBase
         Rgba32 GetColor(TCell cell)
         {
             float dist_percent = (float)this[cell] / MaxDist;
-            return new Rgba32(1f, 0, 1f, dist_percent);
+            return ColorSpaceConverter.ToRgb(new Hsl((dist_percent * 0.5f + 0.5f) * 360f, 1f, 0.8f));
         }
 
         Rgba32 GetColorSpecial(TCell cell)

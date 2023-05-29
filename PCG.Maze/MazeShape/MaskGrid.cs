@@ -56,7 +56,7 @@ public record MaskGrid(int Width, int Height) : Map2D(Width, Height)
         return mask_grid;
     }
     
-    public static Image<Rgba32> DrawTextToImage(string text, string fontPath = @"C:\Windows\Fonts\MComputer PRC Bold.ttf", int fontSize = 24)
+    public static Image<Rgba32> DrawTextToImage(string text, string fontPath = @"C:\Windows\Fonts\MComputer PRC Bold.ttf", int fontSize = 16)
     {
         var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         var text_height = lines.Count();
