@@ -186,7 +186,9 @@ void TestNormalGrid()
 
 void TestRayLib()
 {
-    new Grid3D().DrawImage();
+    var grid3D = new Grid3D(4, 4, 4);
+    KruskalLink(grid3D);
+    grid3D.DrawRayLib();
 }
 
 // TestGridAndDistanceMap();
