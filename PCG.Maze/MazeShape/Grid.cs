@@ -133,7 +133,7 @@ public class Grid : IMazeMap<GridCell>
     protected readonly int lineThickness = 1;
 
 
-    protected (PointF lt, PointF lb, PointF rb, PointF rt) GetCellPoints(int x, int y)
+    protected virtual (PointF lt, PointF lb, PointF rb, PointF rt) GetCellPoints(int x, int y)
     {
         var lt = new PointF(x * CellWidth, y * CellHeight);
         var lb = new PointF(x * CellWidth, (y + 1) * CellHeight);
@@ -149,8 +149,7 @@ public class Grid : IMazeMap<GridCell>
 
         // cellColorGetter ??= DefaultCellColorGetter;
 
-        var image_width = Width * CellWidth;
-        var image_height = Height * CellHeight;
+        var (image_width, image_height) = GetImageSize();
         var image = new Image<Rgba32>(image_width, image_height);
         image.Mutate(ctx =>
         {
@@ -168,7 +167,7 @@ public class Grid : IMazeMap<GridCell>
                 {
                     var cell = Cells[y, x];
                     if (cell is null) continue;
-                    var lt = new PointF(x * CellWidth, y * CellHeight);
+                    var (lt, lb, rb, rt) = GetCellPoints(x, y);
                     var rgba32 = cellColorGetter(cell);
                     // var cell_color = Color.Blue;
                     var cell_color = new Color(rgba32);
@@ -230,6 +229,13 @@ public class Grid : IMazeMap<GridCell>
         });
 
         return image;
+    }
+
+    protected virtual (int image_width, int image_height) GetImageSize()
+    {
+        var image_width = Width * CellWidth;
+        var image_height = Height * CellHeight;
+        return (image_width, image_height);
     }
 
     protected struct InsetCellPoints

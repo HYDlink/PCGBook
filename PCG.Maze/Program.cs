@@ -4,6 +4,7 @@ using System.Numerics;
 using PCG.Common;
 using PCG.Maze;
 using PCG.Maze.MazeShape;
+using PCG.Maze.MazeShape.Advanced;
 using PCG.Maze.Modifier;
 using PCG.Maze.ValueMap;
 using Raylib_cs;
@@ -188,7 +189,58 @@ void TestRayLib()
 {
     var grid3D = new Grid3D(4, 4, 4);
     KruskalLink(grid3D);
-    grid3D.DrawRayLib();
+    new Grid3DPlayer(grid3D).Play();
+    // grid3D.DrawRayLib();
+}
+
+void TestCylinder()
+{
+    var grid = new CylinderGrid(32, 32);
+    KruskalLink(grid);
+    var file_name = "CylinderGridDistance";
+    var file_path = file_name + ".png";
+    // var file_path = @"C:\Work\Projects\PCGBook\PCG.Maze\bin\Debug\net7.0\01-uv-texture.png";
+    // if (false)
+    if (Path.Exists(file_path))
+    {
+        new CylinderPlayer(grid).LoadImage(file_path).Play();
+        return;
+    }
+    grid.DrawImage().SaveImage("CylinderGrid");
+    
+    var rand = Utilities.CreateRandomWithPrintedSeed();
+    var startCell = grid.GetAllCells().RandomItem(rand);
+    var endCell = grid.GetAllCells().RandomItem(rand);
+    var distance_value = new DistanceMap<GridCell>(grid, startCell);
+    var path_value = distance_value.GetPathMap(endCell);
+    
+    var image = grid.DrawImage(distance_value.GetCellColorByDistanceValue());
+    image.Mutate(ctx => ctx.Rotate(RotateMode.Rotate90).Flip(FlipMode.Vertical));
+    image.SaveImage(file_name);
+}
+
+void TestMobius()
+{
+    var grid = new MobiusPlane(32, 32);
+    KruskalLink(grid);
+    var file_name = "MobiusGridDistance";
+    var file_path = file_name + ".png";
+    // var file_path = @"C:\Work\Projects\PCGBook\PCG.Maze\bin\Debug\net7.0\01-uv-texture.png";
+    // if (Path.Exists(file_path))
+    // {
+    //     new CylinderPlayer(grid).LoadImage(file_path).Play();
+    //     return;
+    // }
+    grid.DrawImage().SaveImage("MobiusGrid");
+    
+    var rand = Utilities.CreateRandomWithPrintedSeed();
+    var startCell = grid.GetAllCells().RandomItem(rand);
+    var endCell = grid.GetAllCells().RandomItem(rand);
+    var distance_value = new DistanceMap<GridCell>(grid, startCell);
+    var path_value = distance_value.GetPathMap(endCell);
+    
+    var image = grid.DrawImage(distance_value.GetCellColorByDistanceValue());
+    image.SaveImage(file_name);
 }
 
 // TestGridAndDistanceMap();
@@ -199,4 +251,7 @@ void TestRayLib()
 // TestHexGrid();
 // MaskProgram();
 // TestNormalGrid();
-TestRayLib();
+
+// TestRayLib();
+// TestCylinder();
+TestMobius();
